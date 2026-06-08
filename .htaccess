@@ -1,9 +1,5 @@
 Options -Indexes
 
-# PHP: nunca mostrar errores al cliente en producción
-php_flag display_errors off
-php_flag log_errors on
-
 # Denegar acceso directo a archivos sensibles en raíz
 <FilesMatch "(^\.env(\.example)?$|composer\.(json|lock)$|\.gitignore$|bootstrap\.php$)">
     Require all denied
