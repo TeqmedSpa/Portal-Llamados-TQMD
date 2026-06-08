@@ -1,450 +1,636 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
-$pageTitle = 'Registrar Llamado — TEQMED';
+$pageTitle = 'Sistema de Llamados — Teqmed';
+
+// Generar token CSRF por sesión
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrfToken = $_SESSION['csrf_token'];
+
+// Timestamp de carga del formulario: bloquea envíos en menos de 3 s (bots sin render)
+$_SESSION['form_ready_at'] = time();
 ?>
 <?php require_once __DIR__ . '/includes/header.php'; ?>
 
-<div x-data="portalLlamado()" x-init="init()">
+<script>var CSRF_TOKEN = '<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>';</script>
 
-    <!-- Título -->
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Registrar llamado de servicio</h1>
-        <p class="text-gray-500 mt-1 text-sm">Complete el formulario para solicitar atención técnica de TEQMED.</p>
+<div class="tq-root" x-data="portalLlamado()" x-init="init()">
+  <div class="tq-split">
+
+    <!-- ── Hero panel ─────────────────────────────────────────────────────── -->
+    <div class="tq-hero">
+      <div class="tq-logo">
+        <img src="assets/images/logo.jpg" alt="TEQMED" style="height:56px;width:auto;object-fit:contain">
+      </div>
+      <h1 class="tq-title">
+        Llamados<br>
+        <span class="accent">TEQMED SpA</span>
+      </h1>
+      <div class="tq-subtitle">
+        Informe su desperfecto completando el formulario
+      </div>
+      <div class="tq-help">
+        <h4>¿Necesita ayuda?</h4>
+        <p>Complete el formulario con la mayor cantidad de detalles posible. Recibirá un número de ticket para el seguimiento de su solicitud.</p>
+      </div>
     </div>
 
-    <!-- Indicador de pasos -->
-    <div class="flex items-center gap-3 mb-8">
-        <template x-for="(label, i) in ['Identificación', 'Equipos', 'Detalle']" :key="i">
-            <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold step-dot"
-                     :class="paso > i + 1 ? 'bg-tq-green text-white' : (paso === i + 1 ? 'bg-tq-blue text-white' : 'bg-gray-200 text-gray-500')">
-                    <template x-if="paso > i + 1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </template>
-                    <template x-if="paso <= i + 1">
-                        <span x-text="i + 1"></span>
-                    </template>
-                </div>
-                <span class="text-sm hidden sm:inline"
-                      :class="paso === i + 1 ? 'font-semibold text-gray-800' : 'text-gray-400'" x-text="label"></span>
-                <div x-show="i < 2" class="w-8 h-px bg-gray-300"></div>
-            </div>
-        </template>
-    </div>
+    <!-- ── Form panel ─────────────────────────────────────────────────────── -->
+    <div class="tq-form-panel">
 
-    <!-- ───────────────────────────────────────── PASO 1: Identificación -->
-    <div x-show="paso === 1" class="fade-in">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 class="text-base font-semibold text-gray-800 mb-5">¿Quién realiza el llamado?</h2>
-
-            <!-- Buscador -->
-            <div class="relative mb-5">
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                    Nombre del encargado <span class="text-red-500">*</span>
-                </label>
-                <div class="relative">
-                    <input
-                        type="text"
-                        x-model="busqueda"
-                        @input.debounce.350ms="buscarContactos()"
-                        @focus="mostrarDropdown = sugerencias.length > 0"
-                        @click.outside="mostrarDropdown = false"
-                        placeholder="Escriba su nombre o apellido…"
-                        autocomplete="off"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-tq-blue focus:border-transparent transition"
-                        :class="{'error': errores.contacto}">
-                    <div x-show="buscando" class="absolute right-3 top-3">
-                        <div class="spinner"></div>
-                    </div>
-                </div>
-                <p x-show="errores.contacto" class="error-msg" x-text="errores.contacto"></p>
-
-                <!-- Dropdown sugerencias -->
-                <div x-show="mostrarDropdown && sugerencias.length > 0"
-                     x-transition:enter="transition ease-out duration-100"
-                     x-transition:enter-start="opacity-0 -translate-y-1"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <template x-for="s in sugerencias" :key="s.id">
-                        <button type="button"
-                                @click="seleccionarContacto(s)"
-                                class="w-full text-left px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors autocomplete-item">
-                            <p class="text-sm font-semibold text-gray-900" x-text="s.nombre + ' ' + s.apellido"></p>
-                            <p class="text-xs text-gray-500 mt-0.5">
-                                <span x-text="s.cargo || 'Sin cargo'"></span>
-                                <span class="mx-1 text-gray-300">·</span>
-                                <span x-text="s.centro_nombre"></span>
-                            </p>
-                        </button>
-                    </template>
-                </div>
-
-                <div x-show="mostrarDropdown && sugerencias.length === 0 && !buscando && busqueda.length >= 2"
-                     class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow px-4 py-3">
-                    <p class="text-sm text-gray-500">No se encontraron encargados con ese nombre.</p>
-                </div>
-            </div>
-
-            <!-- Datos del contacto seleccionado -->
-            <div x-show="contacto" x-transition class="bg-tq-blue-light border border-blue-100 rounded-lg p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <p class="text-xs text-gray-500 mb-0.5">Cargo</p>
-                    <p class="text-sm font-medium text-gray-800" x-text="contacto?.cargo || '—'"></p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 mb-0.5">Teléfono</p>
-                    <p class="text-sm font-medium text-gray-800" x-text="contacto?.telefono || '—'"></p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 mb-0.5">Centro médico</p>
-                    <p class="text-sm font-medium text-gray-800" x-text="contacto?.centro_nombre || '—'"></p>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex justify-end mt-5">
-            <button type="button" @click="irPaso2()"
-                    class="px-6 py-2.5 bg-tq-blue text-white font-semibold rounded-lg hover:bg-tq-blue-dark transition-colors text-sm">
-                Continuar →
-            </button>
-        </div>
-    </div>
-
-    <!-- ───────────────────────────────────────── PASO 2: Equipos -->
-    <div x-show="paso === 2" class="fade-in">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <div class="flex items-center justify-between mb-5">
-                <h2 class="text-base font-semibold text-gray-800">¿Qué equipos presentan problemas?</h2>
-                <button type="button" @click="agregarEquipo()"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-tq-blue border border-tq-blue rounded-lg hover:bg-tq-blue-light transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Agregar equipo
-                </button>
-            </div>
-
-            <p x-show="errores.equipos" class="error-msg mb-3" x-text="errores.equipos"></p>
-
-            <!-- Estado vacío -->
-            <div x-show="equiposForm.length === 0"
-                 class="text-center py-10 text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                Haga clic en "Agregar equipo" para seleccionar los equipos con problemas.
-            </div>
-
-            <!-- Lista de equipos -->
-            <div class="space-y-4">
-                <template x-for="(eq, i) in equiposForm" :key="i">
-                    <div class="border border-gray-200 rounded-xl p-4 relative fade-in">
-
-                        <!-- Quitar equipo -->
-                        <button type="button" @click="quitarEquipo(i)"
-                                class="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3"
-                           x-text="'Equipo ' + (i + 1)"></p>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                            <!-- Selector de equipo -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Equipo <span class="text-red-500">*</span>
-                                </label>
-                                <select x-model="eq.equipo_id"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-tq-blue focus:border-transparent transition"
-                                        :class="{'error': eq.error_equipo}">
-                                    <option value="">— Seleccione un equipo —</option>
-                                    <template x-for="e in equiposDisponibles" :key="e.id">
-                                        <option :value="e.id" x-text="e.label"></option>
-                                    </template>
-                                </select>
-                                <p x-show="eq.error_equipo" class="error-msg" x-text="eq.error_equipo"></p>
-                            </div>
-
-                            <!-- Toggle operativo -->
-                            <div class="flex items-end pb-1">
-                                <label class="flex items-center gap-3 cursor-pointer select-none">
-                                    <div class="relative" @click="eq.operativo = !eq.operativo">
-                                        <div class="w-12 h-6 rounded-full toggle-track"
-                                             :class="eq.operativo ? 'bg-tq-green' : 'bg-red-400'"></div>
-                                        <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow toggle-thumb"
-                                             :class="eq.operativo ? 'translate-x-6' : 'translate-x-0'"></div>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-700"
-                                          x-text="eq.operativo ? 'Operativo' : 'Fuera de servicio'"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Descripción del problema -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                Descripción del problema <span class="text-red-500">*</span>
-                            </label>
-                            <textarea x-model="eq.descripcion_problema"
-                                      rows="2"
-                                      placeholder="Describa el problema observado en este equipo…"
-                                      class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-tq-blue focus:border-transparent transition resize-none"
-                                      :class="{'error': eq.error_descripcion}"></textarea>
-                            <p x-show="eq.error_descripcion" class="error-msg" x-text="eq.error_descripcion"></p>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <div class="flex justify-between mt-5">
-            <button type="button" @click="paso = 1"
-                    class="px-5 py-2.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                ← Volver
-            </button>
-            <button type="button" @click="irPaso3()"
-                    class="px-6 py-2.5 bg-tq-blue text-white font-semibold rounded-lg hover:bg-tq-blue-dark transition-colors text-sm">
-                Continuar →
-            </button>
-        </div>
-    </div>
-
-    <!-- ───────────────────────────────────────── PASO 3: Detalle general -->
-    <div x-show="paso === 3" class="fade-in">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5">
-            <h2 class="text-base font-semibold text-gray-800">Detalle del llamado</h2>
-
-            <!-- Resumen contacto + equipos -->
-            <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-1">
-                <p><span class="font-medium">Contacto:</span> <span x-text="contacto?.nombre + ' ' + contacto?.apellido"></span></p>
-                <p><span class="font-medium">Centro médico:</span> <span x-text="contacto?.centro_nombre"></span></p>
-                <p><span class="font-medium">Equipos:</span> <span x-text="equiposForm.length + ' equipo(s) reportado(s)'"></span></p>
-            </div>
-
-            <!-- Título -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                    Título del llamado <span class="text-red-500">*</span>
-                </label>
-                <input type="text" x-model="titulo"
-                       placeholder="Ej: Falla en sistema de diálisis sala 2"
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-tq-blue focus:border-transparent transition"
-                       :class="{'error': errores.titulo}">
-                <p x-show="errores.titulo" class="error-msg" x-text="errores.titulo"></p>
-            </div>
-
-            <!-- Descripción general -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                    Descripción general <span class="text-red-500">*</span>
-                </label>
-                <textarea x-model="descripcion" rows="4"
-                          placeholder="Explique el contexto del llamado: cuándo ocurrió, si hay urgencia clínica, intentos de resolución previos, etc."
-                          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-tq-blue focus:border-transparent transition resize-none"
-                          :class="{'error': errores.descripcion}"></textarea>
-                <p x-show="errores.descripcion" class="error-msg" x-text="errores.descripcion"></p>
-            </div>
-
-            <!-- Prioridad -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <template x-for="p in [{val:'baja',label:'Baja',color:'gray'},{val:'normal',label:'Normal',color:'blue'},{val:'alta',label:'Alta',color:'amber'},{val:'urgente',label:'Urgente',color:'red'}]" :key="p.val">
-                        <label class="cursor-pointer">
-                            <input type="radio" x-model="prioridad" :value="p.val" class="sr-only">
-                            <div class="border-2 rounded-lg px-3 py-2 text-center text-sm font-medium transition-all"
-                                 :class="prioridad === p.val
-                                    ? (p.val === 'urgente' ? 'border-red-500 bg-red-50 text-red-700' :
-                                       p.val === 'alta'    ? 'border-amber-500 bg-amber-50 text-amber-700' :
-                                       p.val === 'normal'  ? 'border-tq-blue bg-tq-blue-light text-tq-blue' :
-                                                             'border-gray-400 bg-gray-100 text-gray-700')
-                                    : 'border-gray-200 text-gray-500 hover:border-gray-300'"
-                                 x-text="p.label">
-                            </div>
-                        </label>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex justify-between mt-5">
-            <button type="button" @click="paso = 2"
-                    class="px-5 py-2.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                ← Volver
-            </button>
-            <button type="button" @click="enviar()" :disabled="enviando"
-                    class="inline-flex items-center gap-2 px-6 py-2.5 bg-tq-blue text-white font-semibold rounded-lg hover:bg-tq-blue-dark transition-colors text-sm disabled:opacity-60">
-                <div x-show="enviando" class="spinner !border-t-white"></div>
-                <span x-text="enviando ? 'Enviando…' : 'Enviar llamado'"></span>
-            </button>
-        </div>
-    </div>
-
-    <!-- ───────────────────────────────────────── CONFIRMACIÓN -->
-    <div x-show="paso === 4" x-transition class="text-center py-14 fade-in">
-        <div class="w-16 h-16 bg-tq-green-light rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-8 h-8 text-tq-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      <!-- Pantalla de éxito -->
+      <template x-if="enviado">
+        <div class="tq-success">
+          <div class="tq-success-check">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
+          </div>
+          <h2>¡Llamado recepcionado!</h2>
+          <p>Hemos recibido tu solicitud. El equipo técnico tomará contacto contigo a la brevedad.</p>
+          <div class="tq-ticket-number" x-text="'N° de ticket · ' + numeroTicket"></div>
+          <button type="button" class="tq-btn tq-btn-secondary" style="margin-top:24px"
+                  @click="location.reload()">
+            Crear otro llamado
+          </button>
         </div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Llamado registrado</h2>
-        <p class="text-gray-500 mb-3">Su solicitud fue recibida correctamente.</p>
-        <p class="text-tq-blue font-mono font-bold text-lg mb-8" x-text="numeroLlamado"></p>
-        <p class="text-sm text-gray-500 mb-8">El equipo técnico de TEQMED tomará contacto a la brevedad.</p>
-        <button type="button" @click="reiniciar()"
-                class="inline-flex items-center px-5 py-2.5 bg-tq-blue text-white font-medium rounded-lg hover:bg-tq-blue-dark transition-colors text-sm">
-            Registrar otro llamado
-        </button>
-    </div>
+      </template>
 
-    <!-- ───────────────────────────────────────── ERROR GLOBAL -->
-    <div x-show="errorGlobal"
-         class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-600 text-white text-sm font-medium px-6 py-3 rounded-xl shadow-lg z-50 fade-in"
-         x-text="errorGlobal"
-         x-transition></div>
+      <!-- Formulario wizard -->
+      <template x-if="!enviado">
+        <div style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden">
 
-</div>
+          <!-- Barra de progreso -->
+          <div class="tq-progress-bar">
+            <span>Página <span x-text="pagina"></span> de 2</span>
+            <span class="req">* Obligatorio</span>
+          </div>
+          <div class="tq-progress-track">
+            <div class="tq-progress-fill" :style="'width:' + (pagina === 1 ? '50' : '100') + '%'"></div>
+          </div>
+
+          <!-- ── PÁGINA 1: Datos de contacto ──────────────────────────────── -->
+          <div x-show="pagina === 1" class="tq-form-scroll">
+            <div class="tq-section-head">
+              <h2>Datos de contacto</h2>
+              <p>Entréguenos sus datos para poder contactarnos con usted.</p>
+            </div>
+
+            <!-- 1. Clínica / Centro médico -->
+            <div class="tq-q">
+              <label class="tq-q-label">
+                <span class="num">1.</span> Clínica / Centro médico <span class="req">*</span>
+              </label>
+              <div class="tq-ac">
+                <input class="tq-input" type="text"
+                  x-model="centroInput"
+                  @input.debounce.300ms="buscarCentros()"
+                  @focus="mostrarCentros = centrosSugeridos.length > 0"
+                  @blur="setTimeout(() => mostrarCentros = false, 150)"
+                  @input="if (centroId && centroInput !== centroNombre) { centroId = null; centroNombre = ''; }"
+                  placeholder="Escribe al menos 2 caracteres para buscar…"
+                  autocomplete="off">
+                <div class="tq-ac-list" x-show="mostrarCentros" style="display:none">
+                  <template x-if="centrosSugeridos.length === 0">
+                    <div class="tq-ac-empty">Sin resultados</div>
+                  </template>
+                  <template x-for="c in centrosSugeridos" :key="c.id">
+                    <div class="tq-ac-item" @mousedown.prevent="seleccionarCentro(c)">
+                      <span x-text="c.nombre"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+              <div class="tq-q-hint">Busca por nombre de clínica o centro médico.</div>
+            </div>
+
+            <!-- 2. Nombre y apellido -->
+            <div class="tq-q">
+              <label class="tq-q-label">
+                <span class="num">2.</span> Nombre y apellido
+                <span class="req">*</span>
+                <span class="tq-autofill-pill" x-show="encargadoId">✓ Cargado</span>
+              </label>
+              <div class="tq-ac">
+                <input class="tq-input" type="text"
+                  x-model="nombreInput"
+                  @input.debounce.300ms="buscarEncargados()"
+                  @focus="mostrarEncargados = encargadosSugeridos.length > 0"
+                  @blur="setTimeout(() => mostrarEncargados = false, 150)"
+                  @input="if (encargadoId) encargadoId = null"
+                  :disabled="!centroId"
+                  placeholder="Ej: María González"
+                  autocomplete="off">
+                <div class="tq-ac-list" x-show="mostrarEncargados" style="display:none">
+                  <template x-if="encargadosSugeridos.length === 0">
+                    <div class="tq-ac-empty">Sin resultados</div>
+                  </template>
+                  <template x-for="c in encargadosSugeridos" :key="c.id">
+                    <div class="tq-ac-item" @mousedown.prevent="seleccionarEncargado(c)">
+                      <div><strong x-text="c.primer_nombre + ' ' + c.primer_apellido"></strong></div>
+                      <div class="sub" x-text="c.cargo || 'Sin cargo'"></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+              <div class="tq-q-hint" x-show="!centroId">Selecciona primero un centro médico.</div>
+              <div class="tq-q-hint" x-show="centroId && !encargadoId">
+                Escribe tu nombre para buscar en el listado del centro.
+              </div>
+            </div>
+          </div>
+
+          <!-- Honeypot anti-bot (oculto vía CSS) -->
+          <div style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+            <input type="text" x-model="hp" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <!-- ── PÁGINA 2: Datos de la falla ─────────────────────────────── -->
+          <div x-show="pagina === 2" class="tq-form-scroll">
+            <div class="tq-section-head">
+              <h2>Datos de la falla</h2>
+              <p>Detállenos cuál es el desperfecto que se presentó.</p>
+            </div>
+
+            <!-- Error de envío -->
+            <div class="tq-error" x-show="errorMsg" style="display:none">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px">
+                <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span x-text="errorMsg"></span>
+            </div>
+
+            <!-- ── Cards de equipo ──────────────────────────────────────── -->
+            <template x-for="(eq, i) in equipos" :key="eq.uid">
+              <div class="tq-equipo-card">
+
+                <!-- Cabecera de la card -->
+                <div class="tq-equipo-head">
+                  <span class="chip" x-text="'EQUIPO ' + (i + 1)"></span>
+                  <button type="button" class="tq-equipo-remove"
+                          x-show="equipos.length > 1"
+                          @click="quitarEquipo(i)">
+                    Quitar
+                  </button>
+                </div>
+
+                <!-- ① Tipo de equipo -->
+                <div class="tq-q">
+                  <label class="tq-q-label">
+                    Tipo de equipo <span class="req">*</span>
+                  </label>
+                  <select class="tq-select"
+                          x-model="eq.tipo"
+                          @change="cambiarTipo(i)">
+                    <option value="">Selecciona el tipo de equipo…</option>
+                    <template x-for="t in tiposDisponibles()" :key="t">
+                      <option :value="t" x-text="t"></option>
+                    </template>
+                  </select>
+                </div>
+
+                <!-- ② ID del equipo (autocomplete filtrado por tipo) -->
+                <div class="tq-q" x-show="eq.tipo">
+                  <label class="tq-q-label">
+                    ID del equipo <span class="req">*</span>
+                  </label>
+                  <div class="tq-ac">
+                    <input class="tq-input" type="text"
+                      x-model="eq.equipoInput"
+                      @focus="eq.mostrarDropdown = equiposPorTipo(eq.tipo, eq.equipoInput).length > 0"
+                      @blur="setTimeout(() => eq.mostrarDropdown = false, 150)"
+                      @input="eq.equipo_id = null; eq.tieneAbierto = false; eq.equipoModelo = ''; eq.equipoSerie = ''; eq.mostrarDropdown = equiposPorTipo(eq.tipo, eq.equipoInput).length > 0"
+                      placeholder="Escribe el ID del equipo para filtrar…"
+                      autocomplete="off">
+                    <div class="tq-ac-list" x-show="eq.mostrarDropdown" style="display:none">
+                      <template x-if="equiposPorTipo(eq.tipo, eq.equipoInput).length === 0">
+                        <div class="tq-ac-empty">
+                          <span x-text="todosEquipos.length === 0 ? 'Cargando equipos…' : 'Sin equipos disponibles para este tipo'"></span>
+                        </div>
+                      </template>
+                      <template x-for="sug in equiposPorTipo(eq.tipo, eq.equipoInput)" :key="sug.id">
+                        <div class="tq-ac-item" @mousedown.prevent="seleccionarEquipo(i, sug)">
+                          <div>
+                            <strong x-text="sug.marca + ' ' + sug.modelo"></strong>
+                          </div>
+                          <div class="sub">
+                            <span x-text="'ID: ' + sug.numero_equipo_id"></span>
+                            <template x-if="sug.tiene_llamado_abierto">
+                              <span style="color:#b45309;font-weight:700"> ⚠ llamado abierto</span>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ③ Modelo y número de serie (auto-fill) -->
+                <div class="tq-q" x-show="eq.equipo_id">
+                  <label class="tq-q-label">
+                    Modelo y número de serie
+                    <span class="tq-autofill-pill">✓ Auto</span>
+                  </label>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+                    <div>
+                      <div style="font-size:11px;font-weight:700;color:var(--tq-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em">Marca</div>
+                      <div class="tq-autofilled" x-text="eq.equipoMarca"></div>
+                    </div>
+                    <div>
+                      <div style="font-size:11px;font-weight:700;color:var(--tq-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em">Modelo</div>
+                      <div class="tq-autofilled" x-text="eq.equipoModelo"></div>
+                    </div>
+                    <div>
+                      <div style="font-size:11px;font-weight:700;color:var(--tq-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em">N° de serie</div>
+                      <div class="tq-autofilled" style="font-family:monospace;font-size:13px" x-text="eq.equipoSerie"></div>
+                    </div>
+                  </div>
+                  <!-- Error bloqueante: llamado abierto -->
+                  <div class="tq-error" x-show="eq.tieneAbierto" style="margin-top:12px">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px">
+                      <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Este equipo ya tiene un llamado abierto. No es posible abrir uno nuevo hasta que el llamado anterior sea cerrado por el equipo técnico.</span>
+                  </div>
+                </div>
+
+                <!-- ④ Falla presentada -->
+                <div class="tq-q" x-show="eq.equipo_id && !eq.tieneAbierto">
+                  <label class="tq-q-label">
+                    Falla presentada <span class="req">*</span>
+                  </label>
+                  <textarea class="tq-textarea"
+                    x-model="eq.falla"
+                    placeholder="Describe la falla con detalle: qué ocurrió, qué síntomas presenta…"></textarea>
+                </div>
+
+                <!-- ⑤⑥ Momento y Estado (lado a lado) -->
+                <div class="tq-q" x-show="eq.equipo_id && !eq.tieneAbierto">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+                  <div>
+                    <label class="tq-q-label">
+                      Momento en que se presentó la falla <span class="req">*</span>
+                    </label>
+                    <div class="tq-radio-group">
+                      <template x-for="m in momentosParaTipo(eq.tipo)" :key="m">
+                        <div class="tq-radio"
+                             :class="eq.momento === m ? 'is-active' : ''"
+                             @click="eq.momento = m">
+                          <span class="tq-radio-dot"></span>
+                          <span x-text="m"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="tq-q-label">
+                      Estado actual de la máquina <span class="req">*</span>
+                    </label>
+                    <div class="tq-radio-group">
+                      <div class="tq-radio tq-radio-lg"
+                           :class="eq.operativo === true ? 'is-active' : ''"
+                           @click="eq.operativo = true">
+                        <span class="tq-radio-dot"></span>
+                        <div>
+                          <div style="font-weight:700">Operativo</div>
+                          <div style="font-size:12px;color:var(--tq-muted);font-weight:500;margin-top:2px">La máquina sigue funcionando</div>
+                        </div>
+                      </div>
+                      <div class="tq-radio tq-radio-lg"
+                           :class="eq.operativo === false ? 'is-active is-fuera' : ''"
+                           @click="eq.operativo = false">
+                        <span class="tq-radio-dot"></span>
+                        <div>
+                          <div style="font-weight:700">Fuera de servicio</div>
+                          <div style="font-size:12px;color:var(--tq-muted);font-weight:500;margin-top:2px">La máquina no puede ser utilizada</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+                </div>
+
+                <!-- ⑦ Comentarios extra (opcional) -->
+                <div class="tq-q" x-show="eq.equipo_id && !eq.tieneAbierto" style="margin-bottom:0">
+                  <label class="tq-q-label" style="font-weight:600">
+                    Comentarios extra
+                    <span style="font-weight:400;color:var(--tq-muted);font-size:13px;margin-left:6px">— opcional</span>
+                  </label>
+                  <textarea class="tq-textarea"
+                    x-model="eq.comentarios"
+                    style="min-height:80px"
+                    placeholder="Cualquier información adicional útil para el técnico…"></textarea>
+                </div>
+
+              </div>
+            </template>
+
+            <button type="button" class="tq-add-equipo" @click="agregarEquipo()">
+              + Agregar otro equipo a este llamado
+            </button>
+          </div>
+
+          <!-- ── Botones de acción ─────────────────────────────────────────── -->
+          <div class="tq-actions">
+            <button type="button" class="tq-btn tq-btn-secondary"
+                    x-show="pagina === 2" @click="pagina = 1">
+              ← Atrás
+            </button>
+            <span x-show="pagina === 1"></span>
+
+            <button type="button" class="tq-btn tq-btn-primary"
+                    x-show="pagina === 1"
+                    @click="siguiente()"
+                    :disabled="!paginaValida()">
+              Siguiente →
+            </button>
+
+            <button type="button" class="tq-btn tq-btn-primary"
+                    x-show="pagina === 2"
+                    @click="enviar()"
+                    :disabled="!pagina2Valida() || enviando">
+              <span class="tq-spinner" x-show="enviando"></span>
+              <span x-show="!enviando">Enviar llamado</span>
+              <span x-show="enviando">Enviando…</span>
+            </button>
+          </div>
+
+        </div>
+      </template>
+
+    </div><!-- /tq-form-panel -->
+  </div><!-- /tq-split -->
+</div><!-- /tq-root -->
 
 <script>
 function portalLlamado() {
-    return {
-        paso: 1,
-        busqueda: '',
-        buscando: false,
-        sugerencias: [],
+  return {
+    pagina: 1,
+    enviado: false,
+    enviando: false,
+    numeroTicket: '',
+    errorMsg: '',
+    csrfToken: typeof CSRF_TOKEN !== 'undefined' ? CSRF_TOKEN : '',
+    hp: '',
+
+    // Página 1 — Centro
+    centroInput: '',
+    centroId: null,
+    centroNombre: '',
+    centrosSugeridos: [],
+    mostrarCentros: false,
+
+    // Página 1 — Contacto
+    nombreInput: '',
+    encargadoId: null,
+    encargadosSugeridos: [],
+    mostrarEncargados: false,
+
+    // Página 2
+    todosEquipos: [],
+    equipos: [],
+
+    // Momentos por tipo de equipo
+    momentosPorTipo: {
+      'Monitor de Hemodiálisis': [
+        'En preparación',
+        'En diálisis',
+        'En desinfección',
+        'Al encender el equipo',
+        'Otros',
+      ],
+      'Autoclave / Esterilizador': [
+        'En preparación',
+        'En desinfección',
+        'Al encender el equipo',
+        'Otros',
+      ],
+      'Ventilador Mecánico': [
+        'En preparación',
+        'Durante uso en paciente',
+        'Al encender el equipo',
+        'Otros',
+      ],
+      'Equipo de Anestesia': [
+        'En preparación',
+        'Durante procedimiento',
+        'Al encender el equipo',
+        'Otros',
+      ],
+    },
+    momentosDefault: [
+      'En preparación',
+      'Durante examen / procedimiento',
+      'Al encender el equipo',
+      'Otros',
+    ],
+
+    init() {
+      this.equipos = [this.nuevoEquipo()];
+    },
+
+    nuevoEquipo() {
+      return {
+        uid: Date.now() + '-' + Math.random().toString(36).slice(2),
+        tipo: '',
+        equipo_id: null,
+        equipoInput: '',
         mostrarDropdown: false,
-        contacto: null,
-        equiposDisponibles: [],
-        equiposForm: [],
-        titulo: '',
-        descripcion: '',
-        prioridad: 'normal',
-        enviando: false,
-        numeroLlamado: '',
-        errorGlobal: '',
-        errores: { contacto: '', equipos: '', titulo: '', descripcion: '' },
+        equipoMarca: '',
+        equipoModelo: '',
+        equipoSerie: '',
+        falla: '',
+        momento: '',
+        operativo: null,
+        comentarios: '',
+        tieneAbierto: false,
+      };
+    },
 
-        init() {},
+    // ── Centro autocomplete ────────────────────────────────────────────────
+    async buscarCentros() {
+      if (this.centroInput.trim().length < 2) {
+        this.centrosSugeridos = [];
+        this.mostrarCentros = false;
+        return;
+      }
+      try {
+        const r = await fetch('process/buscar_centros.php?q=' + encodeURIComponent(this.centroInput));
+        this.centrosSugeridos = await r.json();
+        this.mostrarCentros = this.centrosSugeridos.length > 0;
+      } catch(e) {}
+    },
 
-        async buscarContactos() {
-            const q = this.busqueda.trim();
-            if (q.length < 2) { this.sugerencias = []; this.mostrarDropdown = false; return; }
-            this.buscando = true;
-            try {
-                const res = await fetch(`/process/buscar_contactos.php?q=${encodeURIComponent(q)}`);
-                this.sugerencias = await res.json();
-                this.mostrarDropdown = true;
-            } catch { this.sugerencias = []; }
-            finally { this.buscando = false; }
-        },
+    seleccionarCentro(c) {
+      this.centroInput = c.nombre;
+      this.centroNombre = c.nombre;
+      this.centroId = c.id;
+      this.mostrarCentros = false;
+      this.nombreInput = '';
+      this.encargadoId = null;
+      this.encargadosSugeridos = [];
+      this.equipos = [this.nuevoEquipo()];
+      this.todosEquipos = [];
+      this.cargarEquipos();
+    },
 
-        async seleccionarContacto(s) {
-            this.contacto = s;
-            this.busqueda = s.nombre + ' ' + s.apellido;
-            this.mostrarDropdown = false;
-            this.sugerencias = [];
-            this.equiposForm = [];
-            this.errores.contacto = '';
-            // Cargar equipos del centro
-            try {
-                const res = await fetch(`/process/buscar_equipos.php?centro_id=${s.centro_medico_id}`);
-                this.equiposDisponibles = await res.json();
-            } catch { this.equiposDisponibles = []; }
-        },
+    // ── Contacto autocomplete ──────────────────────────────────────────────
+    async buscarEncargados() {
+      if (this.nombreInput.trim().length < 2 || !this.centroId) {
+        this.encargadosSugeridos = [];
+        this.mostrarEncargados = false;
+        return;
+      }
+      try {
+        const r = await fetch(
+          'process/buscar_contactos.php?q=' + encodeURIComponent(this.nombreInput) +
+          '&centro_id=' + this.centroId
+        );
+        this.encargadosSugeridos = await r.json();
+        this.mostrarEncargados = this.encargadosSugeridos.length > 0;
+      } catch(e) {}
+    },
 
-        irPaso2() {
-            this.errores.contacto = '';
-            if (!this.contacto) { this.errores.contacto = 'Debes seleccionar un encargado de la lista.'; return; }
-            this.paso = 2;
-            window.scrollTo(0, 0);
-        },
+    seleccionarEncargado(c) {
+      this.nombreInput = c.primer_nombre + ' ' + c.primer_apellido;
+      this.encargadoId = c.id;
+      this.mostrarEncargados = false;
+    },
 
-        irPaso3() {
-            this.errores.equipos = '';
-            let valido = true;
-            if (this.equiposForm.length === 0) { this.errores.equipos = 'Debes agregar al menos un equipo.'; valido = false; }
-            this.equiposForm.forEach(eq => {
-                eq.error_equipo = '';
-                eq.error_descripcion = '';
-                if (!eq.equipo_id) { eq.error_equipo = 'Selecciona un equipo.'; valido = false; }
-                if ((eq.descripcion_problema || '').trim().length < 5) { eq.error_descripcion = 'Mínimo 5 caracteres.'; valido = false; }
-            });
-            if (!valido) return;
-            this.paso = 3;
-            window.scrollTo(0, 0);
-        },
+    // ── Equipos ───────────────────────────────────────────────────────────
+    async cargarEquipos() {
+      if (!this.centroId) return;
+      try {
+        const r = await fetch('process/buscar_equipos.php?centro_id=' + this.centroId);
+        this.todosEquipos = await r.json();
+      } catch(e) {}
+    },
 
-        agregarEquipo() {
-            this.equiposForm.push({ equipo_id: '', operativo: true, descripcion_problema: '', error_equipo: '', error_descripcion: '' });
-        },
+    tiposDisponibles() {
+      const tipos = [...new Set(this.todosEquipos.map(e => e.tipo))].sort();
+      return tipos;
+    },
 
-        quitarEquipo(i) {
-            this.equiposForm.splice(i, 1);
-        },
+    equiposPorTipo(tipo, input) {
+      if (!tipo) return [];
+      let lista = this.todosEquipos.filter(e => e.tipo === tipo);
+      if (input && input.trim().length >= 1) {
+        const q = input.toLowerCase();
+        lista = lista.filter(e => e.label.toLowerCase().includes(q));
+      }
+      return lista.slice(0, 8);
+    },
 
-        async enviar() {
-            this.errores.titulo = '';
-            this.errores.descripcion = '';
-            let valido = true;
-            if (this.titulo.trim().length < 5)      { this.errores.titulo      = 'Mínimo 5 caracteres.'; valido = false; }
-            if (this.descripcion.trim().length < 10) { this.errores.descripcion = 'Mínimo 10 caracteres.'; valido = false; }
-            if (!valido) return;
+    seleccionarEquipo(i, sug) {
+      const eq = this.equipos[i];
+      eq.equipo_id = sug.id;
+      eq.equipoInput = sug.numero_equipo_id || sug.numero_serie;
+      eq.equipoMarca = sug.marca;
+      eq.equipoModelo = sug.modelo;
+      eq.equipoSerie = sug.numero_serie;
+      eq.tieneAbierto = sug.tiene_llamado_abierto;
+      eq.mostrarDropdown = false;
+    },
 
-            this.enviando = true;
-            this.errorGlobal = '';
+    cambiarTipo(i) {
+      const eq = this.equipos[i];
+      eq.equipo_id = null;
+      eq.equipoInput = '';
+      eq.equipoMarca = '';
+      eq.equipoModelo = '';
+      eq.equipoSerie = '';
+      eq.tieneAbierto = false;
+      eq.momento = '';
+    },
 
-            try {
-                const payload = {
-                    contacto_id: this.contacto.id,
-                    titulo:      this.titulo.trim(),
-                    descripcion: this.descripcion.trim(),
-                    prioridad:   this.prioridad,
-                    equipos:     this.equiposForm.map(eq => ({
-                        equipo_id:           eq.equipo_id,
-                        operativo:           eq.operativo,
-                        descripcion_problema: eq.descripcion_problema.trim(),
-                    })),
-                };
+    momentosParaTipo(tipo) {
+      return this.momentosPorTipo[tipo] || this.momentosDefault;
+    },
 
-                const res  = await fetch('/process/procesar_llamado.php', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify(payload),
-                });
-                const data = await res.json();
+    agregarEquipo() {
+      this.equipos.push(this.nuevoEquipo());
+    },
 
-                if (data.success) {
-                    this.numeroLlamado = data.numero;
-                    this.paso = 4;
-                    window.scrollTo(0, 0);
-                } else {
-                    this.errorGlobal = data.message || 'Error al enviar el llamado.';
-                    setTimeout(() => this.errorGlobal = '', 5000);
-                }
-            } catch {
-                this.errorGlobal = 'Error de conexión. Intente nuevamente.';
-                setTimeout(() => this.errorGlobal = '', 5000);
-            } finally {
-                this.enviando = false;
-            }
-        },
+    quitarEquipo(i) {
+      this.equipos.splice(i, 1);
+    },
 
-        reiniciar() {
-            this.paso = 1;
-            this.busqueda = '';
-            this.contacto = null;
-            this.equiposForm = [];
-            this.equiposDisponibles = [];
-            this.titulo = '';
-            this.descripcion = '';
-            this.prioridad = 'normal';
-            this.numeroLlamado = '';
-            this.errores = { contacto: '', equipos: '', titulo: '', descripcion: '' };
-            window.scrollTo(0, 0);
-        },
-    };
+    // ── Validación ────────────────────────────────────────────────────────
+    paginaValida() {
+      return !!this.centroId && !!this.encargadoId;
+    },
+
+    pagina2Valida() {
+      if (this.equipos.length === 0) return false;
+      return this.equipos.every(eq =>
+        eq.tipo &&
+        eq.equipo_id &&
+        !eq.tieneAbierto &&
+        eq.falla.trim().length >= 5 &&
+        eq.momento &&
+        eq.operativo !== null
+      );
+    },
+
+    // ── Navegación ────────────────────────────────────────────────────────
+    siguiente() {
+      if (!this.paginaValida()) return;
+      if (this.todosEquipos.length === 0 && this.centroId) this.cargarEquipos();
+      this.pagina = 2;
+      this.$nextTick(() => {
+        const scroll = document.querySelector('.tq-form-scroll');
+        if (scroll) scroll.scrollTop = 0;
+      });
+    },
+
+    // ── Envío ─────────────────────────────────────────────────────────────
+    async enviar() {
+      if (!this.pagina2Valida() || this.enviando) return;
+      this.enviando = true;
+      this.errorMsg = '';
+      try {
+        const r = await fetch('process/procesar_llamado.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            csrf_token: this.csrfToken,
+            hp: this.hp,
+            encargado_id: this.encargadoId,
+            equipos: this.equipos.map(eq => {
+              const partes = [eq.falla.trim()];
+              if (eq.momento) partes.push('Momento: ' + eq.momento);
+              if (eq.comentarios.trim()) partes.push('Comentarios: ' + eq.comentarios.trim());
+              return {
+                equipo_id: eq.equipo_id,
+                descripcion_problema: partes.join('\n'),
+                operativo: eq.operativo,
+              };
+            })
+          })
+        });
+        const data = await r.json();
+        if (data.success) {
+          if (data.csrf_token) this.csrfToken = data.csrf_token;
+          this.enviado = true;
+          this.numeroTicket = data.numero;
+        } else {
+          this.errorMsg = data.message;
+        }
+      } catch(e) {
+        this.errorMsg = 'Error de conexión. Intente nuevamente.';
+      } finally {
+        this.enviando = false;
+      }
+    },
+
+  };
 }
 </script>
 

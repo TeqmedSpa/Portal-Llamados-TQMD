@@ -2,8 +2,18 @@
 
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/rate_limit.php';
 
 header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Cache-Control: no-store, no-cache, must-revalidate');
+
+if (!rateLimitCheck('busqueda', 30, 60)) {
+    http_response_code(429);
+    echo json_encode([]);
+    exit;
+}
 
 $centroId = (int) ($_GET['centro_id'] ?? 0);
 
@@ -19,8 +29,7 @@ try {
         SELECT
             e.id,
             e.numero_serie,
-            e.codigo_interno,
-            e.codigo_inventario,
+            e.numero_equipo_id,
             ma.nombre  AS marca,
             te.nombre  AS tipo,
             me.nombre_modelo AS modelo
@@ -30,17 +39,38 @@ try {
         JOIN tipos_equipo te   ON te.id = me.tipo_equipo_id
         WHERE e.centro_medico_id = :centro_id
           AND e.activo = 1
+          AND e.deleted_at IS NULL
         ORDER BY te.nombre, ma.nombre, me.nombre_modelo
     ");
 
     $stmt->execute([':centro_id' => $centroId]);
     $equipos = $stmt->fetchAll();
 
+    // Detectar cuáles tienen llamado abierto
+    $equipoIds = array_column($equipos, 'id');
+    $conLlamadoAbierto = [];
+    if (!empty($equipoIds)) {
+        $placeholders = implode(',', array_fill(0, count($equipoIds), '?'));
+        $stmtAbierto = $pdo->prepare("
+            SELECT DISTINCT le.equipo_id
+            FROM llamado_equipos le
+            JOIN llamados l ON l.id = le.llamado_id
+            WHERE le.equipo_id IN ($placeholders)
+              AND l.estado NOT IN ('finalizado', 'cancelado')
+              AND l.deleted_at IS NULL
+        ");
+        $stmtAbierto->execute($equipoIds);
+        $conLlamadoAbierto = array_column($stmtAbierto->fetchAll(), 'equipo_id');
+    }
+
     // Build display name for each equipo
     foreach ($equipos as &$e) {
-        $label = "{$e['tipo']} {$e['marca']} {$e['modelo']}";
-        if ($e['codigo_interno']) $label .= " ({$e['codigo_interno']})";
+        $label = "[{$e['numero_equipo_id']}] {$e['tipo']} {$e['marca']} {$e['modelo']}";
         $label .= " — Serie: {$e['numero_serie']}";
+        $e['tiene_llamado_abierto'] = in_array($e['id'], $conLlamadoAbierto);
+        if ($e['tiene_llamado_abierto']) {
+            $label .= ' ⚠ llamado abierto';
+        }
         $e['label'] = $label;
     }
 

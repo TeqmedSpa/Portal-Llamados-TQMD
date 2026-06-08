@@ -1,0 +1,30 @@
+Options -Indexes
+
+# PHP: nunca mostrar errores al cliente en producción
+php_flag display_errors off
+php_flag log_errors on
+
+# Denegar acceso directo a archivos sensibles en raíz
+<FilesMatch "(^\.env(\.example)?$|composer\.(json|lock)$|\.gitignore$|bootstrap\.php$)">
+    Require all denied
+</FilesMatch>
+
+# Denegar acceso a directorios sensibles
+RedirectMatch 404 ^/(vendor|config|storage|includes|\.git)(/|$)
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set X-Permitted-Cross-Domain-Policies "none"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha384-9Ax3MmS9AClxJyd5/zafcXXjxmwFhZCdsT6HJoJjarvCaAkJlk5QDzjLJm+Wdx5F'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
+    Header always unset X-Powered-By
+    Header always unset Server
+</IfModule>
+
+# Forzar HTTPS (descomentar en producción si no hay redirect a nivel servidor)
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
