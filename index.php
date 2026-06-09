@@ -21,7 +21,7 @@ $_SESSION['form_ready_at'] = time();
     <!-- ── Hero panel ─────────────────────────────────────────────────────── -->
     <div class="tq-hero">
       <div class="tq-logo">
-        <img src="assets/images/logo.jpg" alt="TEQMED" style="height:56px;width:auto;object-fit:contain">
+        <img src="assets/images/logo.png" alt="TEQMED" style="height:56px;width:auto;object-fit:contain">
       </div>
       <h1 class="tq-title">
         Llamados<br>

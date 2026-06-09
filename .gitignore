@@ -4,3 +4,4 @@
 storage/
 .DS_Store
 Thumbs.db
+.vscode/sftp.json
