@@ -60,7 +60,7 @@ $_SESSION['form_ready_at'] = time();
 
       <!-- Formulario wizard -->
       <template x-if="!enviado">
-        <div style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden">
+        <div class="tq-wizard-inner">
 
           <!-- Barra de progreso -->
           <div class="tq-progress-bar">
@@ -200,18 +200,18 @@ $_SESSION['form_ready_at'] = time();
                   <div class="tq-ac">
                     <input class="tq-input" type="text"
                       x-model="eq.equipoInput"
-                      @focus="eq.mostrarDropdown = equiposPorTipo(eq.tipo, eq.equipoInput).length > 0"
+                      @focus="eq.mostrarDropdown = equiposPorTipo(eq.tipo, eq.equipoInput, i).length > 0"
                       @blur="setTimeout(() => eq.mostrarDropdown = false, 150)"
-                      @input="eq.equipo_id = null; eq.tieneAbierto = false; eq.equipoModelo = ''; eq.equipoSerie = ''; eq.mostrarDropdown = equiposPorTipo(eq.tipo, eq.equipoInput).length > 0"
+                      @input="eq.equipo_id = null; eq.tieneAbierto = false; eq.equipoModelo = ''; eq.equipoSerie = ''; eq.mostrarDropdown = equiposPorTipo(eq.tipo, eq.equipoInput, i).length > 0"
                       placeholder="Escribe el ID del equipo para filtrar…"
                       autocomplete="off">
                     <div class="tq-ac-list" x-show="eq.mostrarDropdown" style="display:none">
-                      <template x-if="equiposPorTipo(eq.tipo, eq.equipoInput).length === 0">
+                      <template x-if="equiposPorTipo(eq.tipo, eq.equipoInput, i).length === 0">
                         <div class="tq-ac-empty">
                           <span x-text="todosEquipos.length === 0 ? 'Cargando equipos…' : 'Sin equipos disponibles para este tipo'"></span>
                         </div>
                       </template>
-                      <template x-for="sug in equiposPorTipo(eq.tipo, eq.equipoInput)" :key="sug.id">
+                      <template x-for="sug in equiposPorTipo(eq.tipo, eq.equipoInput, i)" :key="sug.id">
                         <div class="tq-ac-item" @mousedown.prevent="seleccionarEquipo(i, sug)">
                           <div>
                             <strong x-text="sug.marca + ' ' + sug.modelo"></strong>
@@ -518,9 +518,12 @@ function portalLlamado() {
       return tipos;
     },
 
-    equiposPorTipo(tipo, input) {
+    equiposPorTipo(tipo, input, idx) {
       if (!tipo) return [];
-      let lista = this.todosEquipos.filter(e => e.tipo === tipo);
+      const yaSeleccionados = new Set(
+        this.equipos.filter((_, j) => j !== idx).map(e => e.equipo_id).filter(id => id !== null)
+      );
+      let lista = this.todosEquipos.filter(e => e.tipo === tipo && !yaSeleccionados.has(e.id));
       if (input && input.trim().length >= 1) {
         const q = input.toLowerCase();
         lista = lista.filter(e => e.label.toLowerCase().includes(q));
@@ -529,6 +532,7 @@ function portalLlamado() {
     },
 
     seleccionarEquipo(i, sug) {
+      if (this.equipos.some((e, j) => j !== i && e.equipo_id === sug.id)) return;
       const eq = this.equipos[i];
       eq.equipo_id = sug.id;
       eq.equipoInput = sug.numero_equipo_id || sug.numero_serie;
@@ -603,16 +607,13 @@ function portalLlamado() {
             csrf_token: this.csrfToken,
             hp: this.hp,
             encargado_id: this.encargadoId,
-            equipos: this.equipos.map(eq => {
-              const partes = [eq.falla.trim()];
-              if (eq.momento) partes.push('Momento: ' + eq.momento);
-              if (eq.comentarios.trim()) partes.push('Comentarios: ' + eq.comentarios.trim());
-              return {
-                equipo_id: eq.equipo_id,
-                descripcion_problema: partes.join('\n'),
-                operativo: eq.operativo,
-              };
-            })
+            equipos: this.equipos.map(eq => ({
+              equipo_id:          eq.equipo_id,
+              operativo:          eq.operativo,
+              descripcion_falla:  eq.falla.trim(),
+              momento:            eq.momento || null,
+              comentarios_extra:  eq.comentarios.trim() || null,
+            }))
           })
         });
         const data = await r.json();
