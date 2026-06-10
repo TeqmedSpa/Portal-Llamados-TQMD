@@ -67,13 +67,27 @@ if ($encargadoId <= 0) $errors[] = 'Debes identificarte como encargado.';
 if (empty($equipos))  $errors[] = 'Debes agregar al menos un equipo.';
 if (count($equipos) > 10) $errors[] = 'Máximo 10 equipos por llamado.';
 
+$equipoIdsEnviados = array_map(fn($eq) => (int) ($eq['equipo_id'] ?? 0), $equipos);
+if (count($equipoIdsEnviados) !== count(array_unique($equipoIdsEnviados))) {
+    $errors[] = 'No puedes agregar el mismo equipo más de una vez en el mismo llamado.';
+}
+
+$momentosValidos = [
+    'En preparación', 'En diálisis', 'En desinfección', 'Al encender el equipo',
+    'Durante uso en paciente', 'Durante procedimiento', 'Durante examen / procedimiento', 'Otros',
+];
+
 foreach ($equipos as $i => $eq) {
-    $num  = $i + 1;
-    $desc = trim($eq['descripcion_problema'] ?? '');
+    $num     = $i + 1;
+    $falla   = trim($eq['descripcion_falla'] ?? '');
+    $momento = isset($eq['momento']) && $eq['momento'] !== '' ? (string) $eq['momento'] : null;
     if (empty($eq['equipo_id']))                                        $errors[] = "Equipo #{$num}: selecciona un equipo.";
-    if (mb_strlen($desc) < 5)                                          $errors[] = "Equipo #{$num}: describe el problema (mínimo 5 caracteres).";
-    if (mb_strlen($desc) > 1000)                                       $errors[] = "Equipo #{$num}: descripción demasiado larga (máximo 1000 caracteres).";
-    if (!isset($eq['operativo']) || !is_bool($eq['operativo']))         $errors[] = "Equipo #{$num}: indica si el equipo está operativo o no.";
+    if (mb_strlen($falla) < 5)                                         $errors[] = "Equipo #{$num}: describe el problema (mínimo 5 caracteres).";
+    if (mb_strlen($falla) > 500)                                       $errors[] = "Equipo #{$num}: descripción demasiado larga (máximo 500 caracteres).";
+    if (mb_strlen(trim($eq['comentarios_extra'] ?? '')) > 500)         $errors[] = "Equipo #{$num}: comentarios demasiado largos (máximo 500 caracteres).";
+    if (!isset($eq['operativo']) || !is_bool($eq['operativo']))        $errors[] = "Equipo #{$num}: indica si el equipo está operativo o no.";
+    if ($momento === null)                                              $errors[] = "Equipo #{$num}: indica el momento en que se presentó la falla.";
+    elseif (!in_array($momento, $momentosValidos, true))               $errors[] = "Equipo #{$num}: momento no válido.";
 }
 
 if (!empty($errors)) {
@@ -86,7 +100,7 @@ if (!empty($errors)) {
 try {
     $pdo = Database::get();
 
-    $stmt = $pdo->prepare("SELECT id, centro_medico_id FROM encargados WHERE id = ? AND activo = 1 AND deleted_at IS NULL LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, centro_medico_id FROM encargado WHERE id = ? AND activo = 1 AND deleted_at IS NULL LIMIT 1");
     $stmt->execute([$encargadoId]);
     $encargadoRow = $stmt->fetch();
     if (!$encargadoRow) {
@@ -102,11 +116,11 @@ try {
 
     $stmt = $pdo->prepare("
         SELECT e.id, e.numero_serie, me.nombre_modelo, ma.nombre AS marca
-        FROM llamado_equipos le
-        JOIN llamados l  ON l.id = le.llamado_id
-        JOIN equipos e   ON e.id = le.equipo_id
-        JOIN modelos_equipo me ON me.id = e.modelo_equipo_id
-        JOIN marcas ma   ON ma.id = me.marca_id
+        FROM llamado_equipo le
+        JOIN llamado l  ON l.id = le.llamado_id
+        JOIN equipo e   ON e.id = le.equipo_id
+        JOIN modelo_equipo me ON me.id = e.modelo_equipo_id
+        JOIN marca ma   ON ma.id = me.marca_id
         WHERE le.equipo_id IN ($placeholders)
           AND l.estado NOT IN ('finalizado', 'cancelado')
           AND l.deleted_at IS NULL
@@ -127,7 +141,7 @@ try {
     // ── Validar que todos los equipos pertenecen al centro del encargado ─────
 
     $stmtOwn = $pdo->prepare("
-        SELECT COUNT(*) AS total FROM equipos
+        SELECT COUNT(*) AS total FROM equipo
         WHERE id IN ($placeholders)
           AND centro_medico_id = ?
           AND activo = 1
@@ -141,38 +155,6 @@ try {
         exit;
     }
 
-    // ── Auto-generar título desde el primer equipo ────────────────────────────
-
-    $firstEquipoId = (int) $equipos[0]['equipo_id'];
-    $stmtInfo = $pdo->prepare("
-        SELECT te.nombre AS tipo, ma.nombre AS marca, me.nombre_modelo AS modelo
-        FROM equipos e
-        JOIN modelos_equipo me ON me.id = e.modelo_equipo_id
-        JOIN marcas ma         ON ma.id = me.marca_id
-        JOIN tipos_equipo te   ON te.id = me.tipo_equipo_id
-        WHERE e.id = ?
-    ");
-    $stmtInfo->execute([$firstEquipoId]);
-    $equipoInfo = $stmtInfo->fetch();
-
-    if (count($equipos) === 1) {
-        $titulo = $equipoInfo
-            ? "Falla en {$equipoInfo['tipo']}: {$equipoInfo['marca']} {$equipoInfo['modelo']}"
-            : 'Llamado de soporte técnico';
-    } else {
-        $tipo = $equipoInfo['tipo'] ?? 'equipos';
-        $titulo = 'Falla en ' . count($equipos) . ' equipos (' . $tipo . ')';
-    }
-
-    // ── Auto-generar descripción ──────────────────────────────────────────────
-
-    $partes = [];
-    foreach ($equipos as $i => $eq) {
-        $prefix = count($equipos) > 1 ? 'Equipo ' . ($i + 1) . ': ' : '';
-        $partes[] = $prefix . trim($eq['descripcion_problema']);
-    }
-    $descripcion = implode("\n\n", $partes);
-
     // ── Insertar en transacción ───────────────────────────────────────────────
 
     $pdo->beginTransaction();
@@ -180,40 +162,40 @@ try {
     $ahora = date('Y-m-d H:i:s');
 
     $stmt = $pdo->prepare("
-        INSERT INTO llamados
-            (encargado_id, numero, titulo, descripcion, estado, fecha_apertura, created_at, updated_at)
+        INSERT INTO llamado
+            (encargado_id, numero, estado, fecha_apertura, created_at, updated_at)
         VALUES
-            (:encargado_id, 'TEMP', :titulo, :descripcion, 'abierto', :fecha, :now1, :now2)
+            (:encargado_id, 'TEMP', 'abierto', :fecha, :now1, :now2)
     ");
     $stmt->execute([
         ':encargado_id' => $encargadoId,
-        ':titulo'      => $titulo,
-        ':descripcion' => $descripcion,
-        ':fecha'       => $ahora,
-        ':now1'        => $ahora,
-        ':now2'        => $ahora,
+        ':fecha'        => $ahora,
+        ':now1'         => $ahora,
+        ':now2'         => $ahora,
     ]);
 
     $llamadoId = (int) $pdo->lastInsertId();
     $numero    = 'LL-' . str_pad($llamadoId, 5, '0', STR_PAD_LEFT); // misma lógica que LlamadoService::generarNumero()
 
-    $pdo->prepare("UPDATE llamados SET numero = ? WHERE id = ?")->execute([$numero, $llamadoId]);
+    $pdo->prepare("UPDATE llamado SET numero = ? WHERE id = ?")->execute([$numero, $llamadoId]);
 
     // Equipos
     $stmtEq = $pdo->prepare("
-        INSERT INTO llamado_equipos
-            (llamado_id, equipo_id, operativo, descripcion_problema, created_at, updated_at)
+        INSERT INTO llamado_equipo
+            (llamado_id, equipo_id, operativo, descripcion_falla, momento, comentarios_extra, created_at, updated_at)
         VALUES
-            (:llamado_id, :equipo_id, :operativo, :descripcion, :now1, :now2)
+            (:llamado_id, :equipo_id, :operativo, :falla, :momento, :comentarios, :now1, :now2)
     ");
     foreach ($equipos as $eq) {
         $stmtEq->execute([
-            ':llamado_id'  => $llamadoId,
-            ':equipo_id'   => (int) $eq['equipo_id'],
-            ':operativo'   => $eq['operativo'] ? 1 : 0,
-            ':descripcion' => trim($eq['descripcion_problema']),
-            ':now1'        => $ahora,
-            ':now2'        => $ahora,
+            ':llamado_id'   => $llamadoId,
+            ':equipo_id'    => (int) $eq['equipo_id'],
+            ':operativo'    => $eq['operativo'] ? 1 : 0,
+            ':falla'        => trim($eq['descripcion_falla'] ?? ''),
+            ':momento'      => $eq['momento'] ?: null,
+            ':comentarios'  => ($eq['comentarios_extra'] ?? '') !== '' ? trim($eq['comentarios_extra']) : null,
+            ':now1'         => $ahora,
+            ':now2'         => $ahora,
         ]);
     }
 

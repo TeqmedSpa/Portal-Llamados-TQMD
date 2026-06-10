@@ -27,8 +27,8 @@ try {
 
     $stmt = $pdo->prepare("
         SELECT DISTINCT cm.id, cm.nombre
-        FROM centros_medicos cm
-        JOIN encargados c ON c.centro_medico_id = cm.id
+        FROM centro_medico cm
+        JOIN encargado c ON c.centro_medico_id = cm.id
             AND c.activo = 1
             AND c.deleted_at IS NULL
         WHERE cm.activo = 1

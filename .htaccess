@@ -1,12 +1,24 @@
-Options -Indexes
+Options -Indexes +FollowSymLinks
 
-# Denegar acceso directo a archivos sensibles en raíz
-<FilesMatch "(^\.env(\.example)?$|composer\.(json|lock)$|\.gitignore$|bootstrap\.php$)">
-    Require all denied
-</FilesMatch>
+ErrorDocument 403 "403 Forbidden"
+ErrorDocument 404 "404 Not Found"
 
-# Denegar acceso a directorios sensibles
-RedirectMatch 404 ^/(vendor|config|storage|includes|\.git)(/|$)
+RewriteEngine On
+RewriteBase /
+
+# Bloquear directorios sensibles
+RewriteRule ^(vendor|config|storage|includes|\.git) - [F,L]
+
+# Bloquear archivos sensibles en raíz
+RewriteRule ^(\.env(\.example)?|composer\.(json|lock)|\.gitignore|bootstrap\.php)$ - [F,L]
+
+# Forzar HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# PHP: nunca mostrar errores al cliente
+php_flag display_errors off
+php_flag log_errors on
 
 # Headers de seguridad
 <IfModule mod_headers.c>
@@ -15,12 +27,7 @@ RedirectMatch 404 ^/(vendor|config|storage|includes|\.git)(/|$)
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
     Header always set X-Permitted-Cross-Domain-Policies "none"
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
     Header always unset X-Powered-By
     Header always unset Server
 </IfModule>
-
-# Forzar HTTPS (descomentar en producción si no hay redirect a nivel servidor)
-# RewriteEngine On
-# RewriteCond %{HTTPS} off
-# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

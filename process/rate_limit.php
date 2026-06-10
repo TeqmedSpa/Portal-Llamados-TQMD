@@ -21,22 +21,32 @@ function rateLimitCheck(string $accion, int $maxIntentos = 5, int $ventanaSegund
         return true;
     }
 
-    $intentos = [];
-    if (file_exists($archivo)) {
-        $datos = json_decode(file_get_contents($archivo), true);
-        if (is_array($datos)) {
-            $intentos = array_values(array_filter($datos, fn($t) => ($ahora - $t) < $ventanaSegundos));
-        }
+    $fh = fopen($archivo, 'c+');
+    if (!$fh) {
+        error_log("[TQMD-PORTAL] rate_limit: no se pudo abrir $archivo — rate limiting desactivado");
+        return true;
     }
 
+    if (!flock($fh, LOCK_EX)) {
+        fclose($fh);
+        return true;
+    }
+
+    $contenido = stream_get_contents($fh);
+    $intentos  = json_decode($contenido ?: '[]', true) ?? [];
+    $intentos  = array_values(array_filter($intentos, fn($t) => ($ahora - $t) < $ventanaSegundos));
+
     if (count($intentos) >= $maxIntentos) {
+        flock($fh, LOCK_UN);
+        fclose($fh);
         return false;
     }
 
     $intentos[] = $ahora;
-    if (file_put_contents($archivo, json_encode($intentos), LOCK_EX) === false) {
-        error_log("[TQMD-PORTAL] rate_limit: no se pudo escribir $archivo — rate limiting puede estar degradado");
-    }
-
+    ftruncate($fh, 0);
+    rewind($fh);
+    fwrite($fh, json_encode($intentos));
+    flock($fh, LOCK_UN);
+    fclose($fh);
     return true;
 }

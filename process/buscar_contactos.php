@@ -15,10 +15,17 @@ if (!rateLimitCheck('busqueda', 30, 60)) {
     exit;
 }
 
+// Solo responde a sesiones que provienen del formulario (tienen token CSRF activo)
+if (empty($_SESSION['csrf_token'])) {
+    http_response_code(403);
+    echo json_encode([]);
+    exit;
+}
+
 $q        = trim($_GET['q'] ?? '');
 $centroId = (int) ($_GET['centro_id'] ?? 0);
 
-if (mb_strlen($q) < 2) {
+if (mb_strlen($q) < 2 || $centroId <= 0) {
     echo json_encode([]);
     exit;
 }
@@ -26,23 +33,20 @@ if (mb_strlen($q) < 2) {
 try {
     $pdo = Database::get();
 
-    $centroFiltro = $centroId > 0 ? 'AND e.centro_medico_id = :centro_id' : '';
-
     $stmt = $pdo->prepare("
         SELECT
             e.id,
             e.primer_nombre,
             e.primer_apellido,
             e.cargo,
-            e.centro_medico_id,
-            cm.nombre AS centro_nombre
-        FROM encargados e
-        JOIN centros_medicos cm ON cm.id = e.centro_medico_id
+            e.centro_medico_id
+        FROM encargado e
+        JOIN centro_medico cm ON cm.id = e.centro_medico_id
         WHERE e.activo = 1
           AND cm.activo = 1
           AND e.deleted_at IS NULL
           AND cm.deleted_at IS NULL
-          {$centroFiltro}
+          AND e.centro_medico_id = :centro_id
           AND (
               e.primer_nombre LIKE :q1
               OR e.primer_apellido LIKE :q2
@@ -55,8 +59,7 @@ try {
     ");
 
     $like = "%{$q}%";
-    $params = [':q1' => $like, ':q2' => $like, ':q3' => $like, ':q4' => $like, ':q5' => $like];
-    if ($centroId > 0) $params[':centro_id'] = $centroId;
+    $params = [':centro_id' => $centroId, ':q1' => $like, ':q2' => $like, ':q3' => $like, ':q4' => $like, ':q5' => $like];
     $stmt->execute($params);
     $resultados = $stmt->fetchAll();
 

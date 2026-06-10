@@ -15,6 +15,13 @@ if (!rateLimitCheck('busqueda', 30, 60)) {
     exit;
 }
 
+// Solo responde a sesiones que provienen del formulario (tienen token CSRF activo)
+if (empty($_SESSION['csrf_token'])) {
+    http_response_code(403);
+    echo json_encode([]);
+    exit;
+}
+
 $centroId = (int) ($_GET['centro_id'] ?? 0);
 
 if ($centroId <= 0) {
@@ -33,10 +40,10 @@ try {
             ma.nombre  AS marca,
             te.nombre  AS tipo,
             me.nombre_modelo AS modelo
-        FROM equipos e
-        JOIN modelos_equipo me ON me.id = e.modelo_equipo_id
-        JOIN marcas ma         ON ma.id = me.marca_id
-        JOIN tipos_equipo te   ON te.id = me.tipo_equipo_id
+        FROM equipo e
+        JOIN modelo_equipo me ON me.id = e.modelo_equipo_id
+        JOIN marca ma         ON ma.id = me.marca_id
+        JOIN tipo_equipo te   ON te.id = me.tipo_equipo_id
         WHERE e.centro_medico_id = :centro_id
           AND e.activo = 1
           AND e.deleted_at IS NULL
@@ -53,8 +60,8 @@ try {
         $placeholders = implode(',', array_fill(0, count($equipoIds), '?'));
         $stmtAbierto = $pdo->prepare("
             SELECT DISTINCT le.equipo_id
-            FROM llamado_equipos le
-            JOIN llamados l ON l.id = le.llamado_id
+            FROM llamado_equipo le
+            JOIN llamado l ON l.id = le.llamado_id
             WHERE le.equipo_id IN ($placeholders)
               AND l.estado NOT IN ('finalizado', 'cancelado')
               AND l.deleted_at IS NULL
