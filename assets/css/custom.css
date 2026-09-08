@@ -17,14 +17,20 @@
 
 * { box-sizing: border-box; }
 
-html, body { margin: 0; height: 100%; background: var(--tq-surface); }
+/* Previene el zoom automático de iOS Safari al enfocar inputs */
+input, textarea, select { font-size: 16px; touch-action: manipulation; }
+
+/* Evita que iOS Safari reescale el texto (labels, hints) al hacer focus/touch en landscape */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+html, body { margin: 0; height: 100%; height: 100dvh; background: var(--tq-surface); }
 body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 
 /* ── Root ── */
 .tq-root {
   font-family: 'Manrope', -apple-system, system-ui, sans-serif;
   color: var(--tq-ink);
-  width: 100%; height: 100%;
+  width: 100%; height: 100%; height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -78,6 +84,7 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
   margin-bottom: 36px;
   box-shadow: 0 10px 28px rgba(0,0,0,0.18);
   position: relative; z-index: 1;
+  overflow: hidden;
 }
 .tq-logo-mark { width: 56px; height: 56px; }
 .tq-title {
@@ -132,7 +139,7 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
 /* ── Inputs ── */
 .tq-input, .tq-textarea {
   width: 100%; padding: 13px 14px;
-  font-family: inherit; font-size: 15px; color: var(--tq-ink);
+  font-family: inherit; font-size: 16px; color: var(--tq-ink);
   background: white; border: 1px solid var(--tq-border); border-radius: 8px;
   outline: none; transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -147,7 +154,7 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
 
 .tq-select {
   width: 100%; padding: 13px 36px 13px 14px;
-  font-family: inherit; font-size: 15px; color: var(--tq-ink);
+  font-family: inherit; font-size: 16px; color: var(--tq-ink);
   background: white; border: 1px solid var(--tq-border); border-radius: 8px;
   outline: none; appearance: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%236b7c8e' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
@@ -238,6 +245,40 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
 }
 .tq-add-equipo:hover { background: #eaf3f5; border-color: var(--tq-teal-700); }
 
+/* ── Image upload ── */
+.tq-upload-area {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 20px; border: 1.5px dashed var(--tq-border); border-radius: 10px;
+  cursor: pointer; transition: all 0.15s; text-align: center;
+  font-size: 14px; font-weight: 600; color: var(--tq-ink-2);
+}
+.tq-upload-area:hover { background: #eaf3f5; border-color: var(--tq-teal-700); color: var(--tq-teal-900); }
+.tq-img-previews {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px;
+}
+.tq-img-thumb {
+  position: relative; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--tq-border-soft); background: var(--tq-surface-2);
+  aspect-ratio: 4 / 3;
+}
+.tq-img-thumb img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.tq-img-remove {
+  position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(0,0,0,0.55); color: white; border: none;
+  display: grid; place-items: center; cursor: pointer;
+  transition: background 0.15s;
+}
+.tq-img-remove:hover { background: rgba(214,53,58,0.85); }
+.tq-img-name {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 4px 8px; background: rgba(0,0,0,0.55);
+  color: white; font-size: 11px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
 /* ── Warning banner ── */
 .tq-warn {
   display: flex; align-items: flex-start; gap: 8px;
@@ -254,6 +295,14 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
   border: 1px solid #f5c6c6; border-radius: 8px;
   font-size: 14px; color: #9a1418; font-weight: 600; margin-bottom: 20px;
 }
+
+/* ── Link-style button (toggle "registrarme" / "volver a buscar") ── */
+.tq-link-btn {
+  background: none; border: none; padding: 4px 0; margin-top: 8px;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  color: var(--tq-teal-700); text-decoration: underline; cursor: pointer;
+}
+.tq-link-btn:hover { color: var(--tq-teal-900); }
 
 /* ── Actions footer ── */
 .tq-actions {
@@ -305,21 +354,17 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
    · (max-height: 500px) and (orientation: landscape)  → teléfonos en landscape con pantalla corta (> 900px de ancho)
 */
 @media (max-width: 900px), (max-height: 500px) and (orientation: landscape) {
-  html, body { height: auto; }
-
-  .tq-root {
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
-  }
+  /* Reemplazar grid por flex column — más predecible en iOS Safari */
   .tq-split {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    overflow: visible;
+    display: flex;
+    flex-direction: column;
   }
-  .tq-form-panel { overflow: visible; }
-  .tq-wizard-inner { overflow: visible; flex: none; }
-  .tq-form-scroll { overflow: visible; padding: 24px 28px; }
+  .tq-hero    { flex-shrink: 0; }
+  .tq-form-panel { flex: 1; min-height: 0; }
+  .tq-form-scroll {
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 28px;
+  }
   .tq-actions { padding: 16px 28px; }
 
   .tq-hero { padding: 28px 24px; }
@@ -330,6 +375,13 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
   .tq-help { display: none; }
   .tq-progress-bar { padding: 20px 28px 0; }
   .tq-progress-track { margin: 8px 28px 0; }
+
+  /* iOS Safari hace zoom automático en inputs con font-size < 16px */
+  .tq-input, .tq-textarea, .tq-select { font-size: 16px; }
+}
+
+@media (max-width: 640px) {
+  .tq-img-previews { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 }
 
 @media (max-width: 540px) {
@@ -348,8 +400,65 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
   .tq-section-head h2 { font-size: 22px; }
   .tq-section-head p { font-size: 14px; margin-bottom: 20px; }
   .tq-q-label { font-size: 14px; }
-  .tq-input, .tq-textarea { font-size: 14px; padding: 11px 12px; }
+  .tq-input, .tq-textarea { font-size: 16px; padding: 11px 12px; }
   .tq-actions { padding: 14px 18px; flex-direction: column-reverse; }
   .tq-btn { width: 100%; justify-content: center; padding: 12px 16px; }
   .tq-equipo-card { padding: 14px; }
+}
+
+/* Landscape: hero angosto a la izquierda + formulario ancho a la derecha */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Volver a 2 columnas pero con proporción compacta */
+  .tq-split {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    grid-template-rows: 1fr;
+  }
+  .tq-hero {
+    padding: 16px 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .tq-logo { width: 48px; height: 48px; margin-bottom: 10px; }
+  .tq-logo-mark { width: 26px; height: 26px; }
+  .tq-title { font-size: 14px; }
+  .tq-subtitle { display: none; }
+  .tq-help { display: none; }
+  .tq-hero::after { display: none; }
+
+  .tq-progress-bar {
+    padding: 10px 20px 0;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    font-size: 12px;
+  }
+  .tq-progress-track {
+    margin: 4px 20px 0;
+    margin-left: max(20px, env(safe-area-inset-left));
+    margin-right: max(20px, env(safe-area-inset-right));
+  }
+  .tq-form-scroll {
+    padding: 10px 20px;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+  .tq-section-head h2 { font-size: 17px; }
+  .tq-section-head p { font-size: 12px; margin-bottom: 10px; }
+
+  .tq-q { margin-bottom: 10px; }
+  .tq-q-label { font-size: 13px; margin-bottom: 6px; }
+  .tq-input, .tq-select { font-size: 16px; padding: 7px 10px; }
+  .tq-textarea { font-size: 16px; padding: 7px 10px; min-height: 60px; }
+
+  .tq-actions {
+    padding: 8px 20px;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+  .tq-btn { padding: 9px 16px; font-size: 13px; }
+  .tq-equipo-card { padding: 10px; margin-bottom: 8px; }
 }

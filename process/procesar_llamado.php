@@ -15,13 +15,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$rawBody = file_get_contents('php://input', false, null, 0, 65536);
-if (strlen($rawBody) >= 65536) {
-    http_response_code(413);
-    echo json_encode(['success' => false, 'message' => 'Solicitud demasiado grande.']);
+// ── Leer datos ──────────────────────────────────────────────────────────────
+// Soporta FormData (con imágenes) y JSON puro (retrocompatibilidad)
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+if (isset($_POST['data'])) {
+    // FormData: los datos vienen como JSON en el campo "data"
+    $input = json_decode($_POST['data'], true);
+} elseif (stripos($contentType, 'application/json') !== false) {
+    // JSON puro (retrocompatibilidad)
+    $rawBody = file_get_contents('php://input', false, null, 0, 65536);
+    if (strlen($rawBody) >= 65536) {
+        http_response_code(413);
+        echo json_encode(['success' => false, 'message' => 'Solicitud demasiado grande.']);
+        exit;
+    }
+    $input = json_decode($rawBody, true);
+} else {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Formato de solicitud no válido.']);
     exit;
 }
-$input = json_decode($rawBody, true);
+
+if (!is_array($input)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Datos no válidos.']);
+    exit;
+}
 
 // ── CSRF ─────────────────────────────────────────────────────────────────────
 $csrfToken    = $input['csrf_token'] ?? '';
@@ -58,12 +78,47 @@ if (!rateLimitCheck('llamado', 5)) {
 
 // ── Validación ────────────────────────────────────────────────────────────────
 
+// Debe coincidir con Modules\Core\Models\Encargado::CARGOS en la intranet
+const CARGOS_VALIDOS = [
+    'Coordinador/a',
+    'Enfermera/o Coordinadora/o',
+    'Encargado/a de Equipos',
+    'Técnico/a en Enfermería',
+    'Administrador/a',
+];
+
 $errors = [];
 
-$encargadoId = (int) ($input['encargado_id'] ?? 0);
-$equipos     = $input['equipos'] ?? [];
+$centroId       = (int) ($input['centro_id'] ?? 0);
+$encargadoId    = (int) ($input['encargado_id'] ?? 0);
+$nuevoEncargado = $input['encargado_nuevo'] ?? null;
+$equipos        = $input['equipos'] ?? [];
 
-if ($encargadoId <= 0) $errors[] = 'Debes identificarte como encargado.';
+// ── Encargado: existente o registro nuevo ────────────────────────────────────
+$encNuevoNombre = $encNuevoSegNombre = $encNuevoApellido = $encNuevoSegApellido = '';
+$encNuevoCargo  = $encNuevoTelefono  = $encNuevoEmail     = '';
+
+if (is_array($nuevoEncargado)) {
+    $encNuevoNombre      = trim($nuevoEncargado['primer_nombre'] ?? '');
+    $encNuevoSegNombre   = trim($nuevoEncargado['segundo_nombre'] ?? '');
+    $encNuevoApellido    = trim($nuevoEncargado['primer_apellido'] ?? '');
+    $encNuevoSegApellido = trim($nuevoEncargado['segundo_apellido'] ?? '');
+    $encNuevoCargo       = trim($nuevoEncargado['cargo'] ?? '');
+    $encNuevoTelefono    = preg_replace('/\D/', '', (string) ($nuevoEncargado['telefono'] ?? ''));
+    $encNuevoEmail       = trim($nuevoEncargado['email'] ?? '');
+
+    if ($centroId <= 0)                                              $errors[] = 'Selecciona tu clínica o centro médico.';
+    if ($encNuevoNombre === '' || mb_strlen($encNuevoNombre) > 150)  $errors[] = 'Ingresa un nombre válido.';
+    if (mb_strlen($encNuevoSegNombre) > 150)                         $errors[] = 'Segundo nombre demasiado largo.';
+    if ($encNuevoApellido === '' || mb_strlen($encNuevoApellido) > 150)    $errors[] = 'Ingresa un apellido válido.';
+    if ($encNuevoSegApellido === '' || mb_strlen($encNuevoSegApellido) > 150) $errors[] = 'Ingresa un segundo apellido válido.';
+    if (!in_array($encNuevoCargo, CARGOS_VALIDOS, true))             $errors[] = 'Selecciona un cargo válido.';
+    if (!preg_match('/^\d{9}$/', $encNuevoTelefono))                 $errors[] = 'Ingresa un teléfono válido de 9 dígitos.';
+    if (!filter_var($encNuevoEmail, FILTER_VALIDATE_EMAIL) || mb_strlen($encNuevoEmail) > 255) $errors[] = 'Ingresa un email válido.';
+} elseif ($encargadoId <= 0) {
+    $errors[] = 'Debes identificarte como encargado.';
+}
+
 if (empty($equipos))  $errors[] = 'Debes agregar al menos un equipo.';
 if (count($equipos) > 10) $errors[] = 'Máximo 10 equipos por llamado.';
 
@@ -90,24 +145,89 @@ foreach ($equipos as $i => $eq) {
     elseif (!in_array($momento, $momentosValidos, true))               $errors[] = "Equipo #{$num}: momento no válido.";
 }
 
+// ── Validar imágenes ─────────────────────────────────────────────────────────
+$imagenesSubidas   = [];
+$tiposPermitidos   = ['image/jpeg', 'image/png', 'image/webp'];
+$extPermitidas     = ['jpg', 'jpeg', 'png', 'webp'];
+$maxTamanoImagen   = 5 * 1024 * 1024; // 5 MB
+$maxImagenes       = 3;
+
+if (!empty($_FILES['imagenes']['name'][0])) {
+    $totalImagenes = count($_FILES['imagenes']['name']);
+    if ($totalImagenes > $maxImagenes) {
+        $errors[] = "Máximo {$maxImagenes} imágenes por llamado.";
+    } else {
+        for ($i = 0; $i < $totalImagenes; $i++) {
+            $nombre   = $_FILES['imagenes']['name'][$i];
+            $tmpPath  = $_FILES['imagenes']['tmp_name'][$i];
+            $tamano   = $_FILES['imagenes']['size'][$i];
+            $error    = $_FILES['imagenes']['error'][$i];
+
+            if ($error !== UPLOAD_ERR_OK) {
+                $errors[] = "Error al subir la imagen \"{$nombre}\".";
+                continue;
+            }
+
+            // Validar tamaño
+            if ($tamano > $maxTamanoImagen) {
+                $errors[] = "\"{$nombre}\" excede los 5 MB.";
+                continue;
+            }
+
+            // Validar tipo MIME real (no confiar en el header del cliente)
+            $finfo    = new finfo(FILEINFO_MIME_TYPE);
+            $mimeReal = $finfo->file($tmpPath);
+            if (!in_array($mimeReal, $tiposPermitidos, true)) {
+                $errors[] = "\"{$nombre}\" no es un formato de imagen válido.";
+                continue;
+            }
+
+            // Validar extensión
+            $ext = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
+            if (!in_array($ext, $extPermitidas, true)) {
+                $errors[] = "\"{$nombre}\": extensión no permitida.";
+                continue;
+            }
+
+            $imagenesSubidas[] = [
+                'tmp_path'        => $tmpPath,
+                'nombre_original' => mb_substr(basename($nombre), 0, 255),
+                'mime_type'       => $mimeReal,
+                'tamano_bytes'    => $tamano,
+                'ext'             => $ext === 'jpeg' ? 'jpg' : $ext,
+            ];
+        }
+    }
+}
+
 if (!empty($errors)) {
     echo json_encode(['success' => false, 'message' => implode(' ', $errors)]);
     exit;
 }
 
-// ── Verificar que el contacto existe ─────────────────────────────────────────
+// ── Verificar que el contacto existe (o que el centro del registro nuevo es válido) ──
 
 try {
     $pdo = Database::get();
 
-    $stmt = $pdo->prepare("SELECT id, centro_medico_id FROM encargado WHERE id = ? AND activo = 1 AND deleted_at IS NULL LIMIT 1");
-    $stmt->execute([$encargadoId]);
-    $encargadoRow = $stmt->fetch();
-    if (!$encargadoRow) {
-        echo json_encode(['success' => false, 'message' => 'Encargado no encontrado.']);
-        exit;
+    if (is_array($nuevoEncargado)) {
+        $stmt = $pdo->prepare("SELECT id FROM centro_medico WHERE id = ? AND activo = 1 AND deleted_at IS NULL LIMIT 1");
+        $stmt->execute([$centroId]);
+        if (!$stmt->fetch()) {
+            echo json_encode(['success' => false, 'message' => 'Centro médico no válido.']);
+            exit;
+        }
+        $centroPropietario = $centroId;
+    } else {
+        $stmt = $pdo->prepare("SELECT id, centro_medico_id FROM encargado WHERE id = ? AND activo = 1 AND deleted_at IS NULL LIMIT 1");
+        $stmt->execute([$encargadoId]);
+        $encargadoRow = $stmt->fetch();
+        if (!$encargadoRow) {
+            echo json_encode(['success' => false, 'message' => 'Encargado no encontrado.']);
+            exit;
+        }
+        $centroPropietario = (int) $encargadoRow['centro_medico_id'];
     }
-    $centroPropietario = (int) $encargadoRow['centro_medico_id'];
 
     // ── Verificar que ningún equipo tenga llamado abierto ────────────────────
 
@@ -161,6 +281,28 @@ try {
 
     $ahora = date('Y-m-d H:i:s');
 
+    if (is_array($nuevoEncargado)) {
+        $stmtEnc = $pdo->prepare("
+            INSERT INTO encargado
+                (centro_medico_id, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, cargo, telefono, email, activo, created_at, updated_at)
+            VALUES
+                (:centro_id, :pn, :sn, :pa, :sa, :cargo, :tel, :email, 1, :now1, :now2)
+        ");
+        $stmtEnc->execute([
+            ':centro_id' => $centroPropietario,
+            ':pn'        => $encNuevoNombre,
+            ':sn'        => $encNuevoSegNombre !== '' ? $encNuevoSegNombre : null,
+            ':pa'        => $encNuevoApellido,
+            ':sa'        => $encNuevoSegApellido,
+            ':cargo'     => $encNuevoCargo,
+            ':tel'       => $encNuevoTelefono,
+            ':email'     => $encNuevoEmail,
+            ':now1'      => $ahora,
+            ':now2'      => $ahora,
+        ]);
+        $encargadoId = (int) $pdo->lastInsertId();
+    }
+
     $stmt = $pdo->prepare("
         INSERT INTO llamado
             (encargado_id, numero, estado, fecha_apertura, created_at, updated_at)
@@ -207,6 +349,41 @@ try {
             (:llamado_id, NULL, 'creacion', '', 'abierto', '', :now)
     ")->execute([':llamado_id' => $llamadoId, ':now' => $ahora]);
 
+    // ── Guardar imágenes ─────────────────────────────────────────────────────
+    if (!empty($imagenesSubidas)) {
+        $uploadDir = __DIR__ . '/../uploads/llamados/' . $llamadoId;
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $stmtImg = $pdo->prepare("
+            INSERT INTO llamado_imagen
+                (llamado_id, nombre_archivo, nombre_original, mime_type, tamano_bytes, created_at)
+            VALUES
+                (:llamado_id, :nombre_archivo, :nombre_original, :mime_type, :tamano_bytes, :now)
+        ");
+
+        foreach ($imagenesSubidas as $img) {
+            // Nombre único basado en uniqid + random
+            $nombreUnico = uniqid('img_', true) . '.' . $img['ext'];
+
+            $destino = $uploadDir . '/' . $nombreUnico;
+            if (!move_uploaded_file($img['tmp_path'], $destino)) {
+                error_log("[TQMD-PORTAL] Error al guardar imagen: {$img['nombre_original']}");
+                continue;
+            }
+
+            $stmtImg->execute([
+                ':llamado_id'      => $llamadoId,
+                ':nombre_archivo'  => $nombreUnico,
+                ':nombre_original' => $img['nombre_original'],
+                ':mime_type'       => $img['mime_type'],
+                ':tamano_bytes'    => $img['tamano_bytes'],
+                ':now'             => $ahora,
+            ]);
+        }
+    }
+
     $pdo->commit();
 
     $_SESSION['csrf_token']  = bin2hex(random_bytes(32));
@@ -221,6 +398,12 @@ try {
 
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    // Limpiar archivos subidos si hubo error
+    if (!empty($llamadoId) && is_dir(__DIR__ . '/../uploads/llamados/' . $llamadoId)) {
+        $dirLimpiar = __DIR__ . '/../uploads/llamados/' . $llamadoId;
+        foreach (glob($dirLimpiar . '/*') as $f) @unlink($f);
+        @rmdir($dirLimpiar);
+    }
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Error interno. Intente nuevamente.']);
 }

@@ -1,0 +1,20 @@
+# Permitir solo imágenes
+<FilesMatch "\.(jpg|jpeg|png|webp)$">
+    Require all granted
+</FilesMatch>
+
+# Denegar todo lo demás (PHP, scripts, etc.)
+<FilesMatch "\.(?!jpg$|jpeg$|png$|webp$)[^.]+$">
+    Require all denied
+</FilesMatch>
+
+# No ejecutar PHP en este directorio
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Deshabilitar listado de directorio
+Options -Indexes
+
+# No seguir enlaces simbólicos
+Options -FollowSymLinks

@@ -2,6 +2,8 @@
 .env
 *.log
 storage/
+uploads/llamados/*
+!uploads/llamados/.gitkeep
 .DS_Store
 Thumbs.db
 .vscode/sftp.json

@@ -26,19 +26,19 @@ try {
     $pdo = Database::get();
 
     $stmt = $pdo->prepare("
-        SELECT DISTINCT cm.id, cm.nombre
+        SELECT cm.id, cm.nombre, cl.nombre AS cliente_nombre
         FROM centro_medico cm
-        JOIN encargado c ON c.centro_medico_id = cm.id
-            AND c.activo = 1
-            AND c.deleted_at IS NULL
+        JOIN cliente cl ON cl.id = cm.cliente_id
+            AND cl.activo = 1
+            AND cl.deleted_at IS NULL
         WHERE cm.activo = 1
           AND cm.deleted_at IS NULL
-          AND cm.nombre LIKE :q
+          AND (cm.nombre LIKE :q1 OR cl.nombre LIKE :q2)
         ORDER BY cm.nombre
-        LIMIT 8
+        LIMIT 30
     ");
 
-    $stmt->execute([':q' => "%{$q}%"]);
+    $stmt->execute([':q1' => "%{$q}%", ':q2' => "%{$q}%"]);
     echo json_encode($stmt->fetchAll());
 
 } catch (Exception $e) {
