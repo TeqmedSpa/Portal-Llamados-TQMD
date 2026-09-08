@@ -441,6 +441,19 @@ $_SESSION['form_ready_at'] = time();
             </div>
           </div>
 
+          <!-- ── Aceptación de política de privacidad ─────────────────────── -->
+          <div x-show="pagina === 2" style="margin-top:20px;padding:16px 18px;background:var(--tq-surface-2);border:1px solid var(--tq-border-soft);border-radius:10px">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;line-height:1.5;color:var(--tq-ink-2)">
+              <input type="checkbox" x-model="aceptaPrivacidad"
+                     style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:var(--tq-teal-700)">
+              <span>
+                He leído y acepto la
+                <a href="/privacidad.php" target="_blank" style="color:var(--tq-teal-700);font-weight:600;text-decoration:underline">Política de Privacidad</a>
+                y autorizo el tratamiento de mis datos personales conforme a lo descrito en ella.
+              </span>
+            </label>
+          </div>
+
           <!-- ── Botones de acción ─────────────────────────────────────────── -->
           <div class="tq-actions">
             <button type="button" class="tq-btn tq-btn-secondary"
@@ -482,6 +495,7 @@ function portalLlamado() {
     errorMsg: '',
     csrfToken: typeof CSRF_TOKEN !== 'undefined' ? CSRF_TOKEN : '',
     hp: '',
+    aceptaPrivacidad: false,
 
     // Página 1 — Centro
     centroInput: '',
@@ -783,6 +797,10 @@ function portalLlamado() {
       const errores = this.erroresPagina2();
       if (errores.length) {
         this.errorMsg = 'Antes de enviar debes completar lo siguiente: ' + errores.join(' ');
+        return;
+      }
+      if (!this.aceptaPrivacidad) {
+        this.errorMsg = 'Debes aceptar la Política de Privacidad para enviar el llamado.';
         return;
       }
       this.enviando = true;
