@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
-$pageTitle = 'Política de Privacidad — Teqmed';
+$pageTitle = 'Política de Privacidad — TEQMED';
 ?>
 <?php require_once __DIR__ . '/includes/header.php'; ?>
 
@@ -237,11 +237,11 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <img src="/assets/images/logo.png" alt="TEQMED">
       <span>TEQMED SpA</span>
     </div>
-    <h1 class="pp-title">Politica de Privacidad</h1>
-    <p class="pp-subtitle">Portal de Soporte Tecnico — llamados.teqmed.cl</p>
+    <h1 class="pp-title">Política de Privacidad</h1>
+    <p class="pp-subtitle">Portal de Soporte Técnico — llamados.teqmed.cl</p>
     <div class="pp-meta">
-      <span>Ultima actualizacion: 1 de septiembre de 2026</span>
-      <span>Version 1.0</span>
+      <span>Última actualización: 1 de septiembre de 2026</span>
+      <span>Versión 1.0</span>
     </div>
   </header>
 
@@ -249,19 +249,19 @@ $pageTitle = 'Política de Privacidad — Teqmed';
     <div class="pp-toc-title">Contenido</div>
     <ol>
       <li><a href="#art1">Responsable del tratamiento</a></li>
-      <li><a href="#art2">Ambito de aplicacion</a></li>
+      <li><a href="#art2">Ámbito de aplicación</a></li>
       <li><a href="#art3">Datos personales que recopilamos</a></li>
       <li><a href="#art4">Finalidad del tratamiento</a></li>
       <li><a href="#art5">Base legal del tratamiento</a></li>
       <li><a href="#art6">Destinatarios de los datos</a></li>
       <li><a href="#art7">Transferencia internacional de datos</a></li>
-      <li><a href="#art8">Plazos de conservacion</a></li>
+      <li><a href="#art8">Plazos de conservación</a></li>
       <li><a href="#art9">Derechos de los titulares</a></li>
       <li><a href="#art10">Ejercicio de derechos</a></li>
-      <li><a href="#art11">Cookies y tecnologias similares</a></li>
+      <li><a href="#art11">Cookies y tecnologías similares</a></li>
       <li><a href="#art12">Seguridad de los datos</a></li>
-      <li><a href="#art13">Modificaciones a esta politica</a></li>
-      <li><a href="#art14">Legislacion aplicable</a></li>
+      <li><a href="#art13">Modificaciones a esta política</a></li>
+      <li><a href="#art14">Legislación aplicable</a></li>
     </ol>
   </nav>
 
@@ -271,24 +271,24 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <span class="pp-art-num">Art. 1</span>
       <h2 class="pp-art-title">Responsable del tratamiento</h2>
     </div>
-    <p>El responsable del tratamiento de los datos personales recopilados a traves de este portal es:</p>
+    <p>El responsable del tratamiento de los datos personales recopilados a través de este portal es:</p>
     <div class="pp-highlight">
       <strong>TEQMED SpA</strong><br>
-      Castellon 970, Concepcion, Region del Biobio, Chile<br>
-      Correo electronico: <strong>contacto@teqmed.cl</strong><br>
+      Castellón 970, Concepción, Región del Biobío, Chile<br>
+      Correo electrónico: <strong>contacto@teqmed.cl</strong><br>
       Sitio web: teqmed.cl
     </div>
-    <p>TEQMED SpA (en adelante "TEQMED" o "nosotros") es una empresa dedicada a la provision de servicios de mantenimiento, reparacion y soporte tecnico de equipos medicos instalados en centros de dialisis y establecimientos de salud a lo largo de Chile.</p>
+    <p>TEQMED SpA (en adelante "TEQMED" o "nosotros") es una empresa dedicada a la provisión de servicios de mantenimiento, reparación y soporte técnico de equipos médicos instalados en centros de diálisis y establecimientos de salud a lo largo de Chile.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
   <div class="pp-article" id="art2">
     <div class="pp-art-header">
       <span class="pp-art-num">Art. 2</span>
-      <h2 class="pp-art-title">Ambito de aplicacion</h2>
+      <h2 class="pp-art-title">Ámbito de aplicación</h2>
     </div>
-    <p>Esta politica de privacidad se aplica al tratamiento de datos personales realizado a traves del <strong>Portal de Soporte Tecnico</strong> de TEQMED, accesible en <strong>llamados.teqmed.cl</strong> (en adelante "el Portal"), mediante el cual el personal autorizado de nuestros clientes puede crear y gestionar solicitudes de soporte tecnico ("llamados").</p>
-    <p>Esta politica tambien aplica a los datos personales que, habiendo sido recopilados a traves del Portal, sean posteriormente tratados en nuestros sistemas internos de gestion para dar cumplimiento al servicio contratado.</p>
+    <p>Esta política de privacidad se aplica al tratamiento de datos personales realizado a través del <strong>Portal de Soporte Técnico</strong> de TEQMED, accesible en <strong>llamados.teqmed.cl</strong> (en adelante "el Portal"), mediante el cual el personal autorizado de nuestros clientes puede crear y gestionar solicitudes de soporte técnico ("llamados").</p>
+    <p>Esta política también aplica a los datos personales que, habiendo sido recopilados a través del Portal, sean posteriormente tratados en nuestros sistemas internos de gestión para dar cumplimiento al servicio contratado.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -297,44 +297,44 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <span class="pp-art-num">Art. 3</span>
       <h2 class="pp-art-title">Datos personales que recopilamos</h2>
     </div>
-    <p>Recopilamos las siguientes categorias de datos personales:</p>
+    <p>Recopilamos las siguientes categorías de datos personales:</p>
 
     <div class="pp-table-wrap">
       <table class="pp-table">
         <thead>
           <tr>
-            <th>Categoria</th>
-            <th>Datos especificos</th>
+            <th>Categoría</th>
+            <th>Datos específicos</th>
             <th>Fuente</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Datos de identificacion</td>
+            <td>Datos de identificación</td>
             <td>Nombre, apellidos, cargo</td>
             <td>Proporcionados por el usuario al registrarse como contacto</td>
           </tr>
           <tr>
             <td>Datos de contacto</td>
-            <td>Numero de telefono, direccion de correo electronico</td>
+            <td>Número de teléfono, dirección de correo electrónico</td>
             <td>Proporcionados por el usuario al registrarse como contacto</td>
           </tr>
           <tr>
-            <td>Datos de navegacion</td>
-            <td>Direccion IP, identificador de sesion</td>
-            <td>Recopilados automaticamente al acceder al Portal</td>
+            <td>Datos de navegación</td>
+            <td>Dirección IP, identificador de sesión</td>
+            <td>Recopilados automáticamente al acceder al Portal</td>
           </tr>
           <tr>
             <td>Contenido generado</td>
-            <td>Descripciones de fallas, fotografias adjuntas a los llamados</td>
+            <td>Descripciones de fallas, fotografías adjuntas a los llamados</td>
             <td>Proporcionados voluntariamente por el usuario al crear un llamado</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <p>Las fotografias adjuntas podrian contener, de manera incidental, imagenes de personas o informacion identificable visible en el entorno. Le solicitamos que, en la medida de lo posible, evite incluir datos personales de terceros en las fotografias.</p>
-    <p>TEQMED <strong>no recopila datos sensibles</strong> (datos de salud de pacientes, origen etnico, creencias religiosas, datos biometricos u otros contemplados en el articulo 16 bis de la Ley 19.628 modificada).</p>
+    <p>Las fotografías adjuntas podrían contener, de manera incidental, imágenes de personas o información identificable visible en el entorno. Le solicitamos que, en la medida de lo posible, evite incluir datos personales de terceros en las fotografías.</p>
+    <p>TEQMED <strong>no recopila datos sensibles</strong> (datos de salud de pacientes, origen étnico, creencias religiosas, datos biométricos u otros contemplados en el artículo 16 bis de la Ley 19.628 modificada).</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -345,13 +345,13 @@ $pageTitle = 'Política de Privacidad — Teqmed';
     </div>
     <p>Los datos personales son tratados exclusivamente para las siguientes finalidades:</p>
     <ol>
-      <li><strong>Gestion de llamados de soporte tecnico:</strong> recibir, registrar, asignar, dar seguimiento y resolver las solicitudes de soporte tecnico reportadas a traves del Portal.</li>
-      <li><strong>Comunicacion con el usuario:</strong> enviar notificaciones por correo electronico (y, cuando este habilitado, por WhatsApp) sobre el estado de los llamados, la asignacion de tecnicos y la resolucion del servicio.</li>
-      <li><strong>Identificacion y autenticacion:</strong> verificar la identidad del contacto autorizado y asociarlo al centro medico correspondiente.</li>
-      <li><strong>Generacion de informes tecnicos:</strong> los datos del contacto que reporta una falla pueden vincularse a informes correctivos generados como resultado del llamado, los cuales forman parte de la documentacion tecnica del servicio.</li>
+      <li><strong>Gestión de llamados de soporte técnico:</strong> recibir, registrar, asignar, dar seguimiento y resolver las solicitudes de soporte técnico reportadas a través del Portal.</li>
+      <li><strong>Comunicación con el usuario:</strong> enviar notificaciones por correo electrónico (y, cuando esté habilitado, por WhatsApp) sobre el estado de los llamados, la asignación de técnicos y la resolución del servicio.</li>
+      <li><strong>Identificación y autenticación:</strong> verificar la identidad del contacto autorizado y asociarlo al centro médico correspondiente.</li>
+      <li><strong>Generación de informes técnicos:</strong> los datos del contacto que reporta una falla pueden vincularse a informes correctivos generados como resultado del llamado, los cuales forman parte de la documentación técnica del servicio.</li>
       <li><strong>Seguridad del sistema:</strong> proteger el Portal contra accesos no autorizados, ataques automatizados y usos abusivos mediante el registro temporal de direcciones IP.</li>
     </ol>
-    <p>TEQMED <strong>no utiliza los datos personales</strong> recopilados a traves del Portal para fines de marketing, elaboracion de perfiles, toma de decisiones automatizadas, ni los comparte con terceros para fines comerciales.</p>
+    <p>TEQMED <strong>no utiliza los datos personales</strong> recopilados a través del Portal para fines de marketing, elaboración de perfiles, toma de decisiones automatizadas, ni los comparte con terceros para fines comerciales.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -360,11 +360,11 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <span class="pp-art-num">Art. 5</span>
       <h2 class="pp-art-title">Base legal del tratamiento</h2>
     </div>
-    <p>El tratamiento de datos personales se sustenta en las siguientes bases legales, conforme al articulo 13 de la Ley 19.628 modificada por la Ley 21.719:</p>
+    <p>El tratamiento de datos personales se sustenta en las siguientes bases legales, conforme al artículo 13 de la Ley 19.628 modificada por la Ley 21.719:</p>
     <ul>
-      <li><strong>Ejecucion de un contrato</strong> (Art. 13 letra c): el tratamiento de datos de los contactos de clientes es necesario para la ejecucion del contrato de prestacion de servicios de mantenimiento celebrado entre TEQMED y la institucion a la que pertenece el usuario. La gestion de llamados de soporte es una obligacion contractual derivada de dicho contrato.</li>
-      <li><strong>Consentimiento del titular</strong> (Art. 13 letra a): cuando un usuario se registra como nuevo contacto a traves del Portal, su consentimiento explicito es requerido antes de que sus datos sean almacenados. Este consentimiento es libre, informado, especifico e inequivoco.</li>
-      <li><strong>Interes legitimo</strong> (Art. 13 letra e): el registro temporal de direcciones IP para la proteccion del Portal contra ataques y abusos se sustenta en el interes legitimo de TEQMED en mantener la seguridad de sus sistemas, sin que ello prevalezca sobre los derechos fundamentales del titular.</li>
+      <li><strong>Ejecución de un contrato</strong> (Art. 13 letra c): el tratamiento de datos de los contactos de clientes es necesario para la ejecución del contrato de prestación de servicios de mantenimiento celebrado entre TEQMED y la institución a la que pertenece el usuario. La gestión de llamados de soporte es una obligación contractual derivada de dicho contrato.</li>
+      <li><strong>Consentimiento del titular</strong> (Art. 13 letra a): cuando un usuario se registra como nuevo contacto a través del Portal, su consentimiento explícito es requerido antes de que sus datos sean almacenados. Este consentimiento es libre, informado, específico e inequívoco.</li>
+      <li><strong>Interés legítimo</strong> (Art. 13 letra e): el registro temporal de direcciones IP para la protección del Portal contra ataques y abusos se sustenta en el interés legítimo de TEQMED en mantener la seguridad de sus sistemas, sin que ello prevalezca sobre los derechos fundamentales del titular.</li>
     </ul>
   </div>
 
@@ -374,14 +374,14 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <span class="pp-art-num">Art. 6</span>
       <h2 class="pp-art-title">Destinatarios de los datos</h2>
     </div>
-    <p>Los datos personales pueden ser compartidos con las siguientes categorias de destinatarios, exclusivamente en la medida necesaria para cumplir las finalidades descritas:</p>
+    <p>Los datos personales pueden ser compartidos con las siguientes categorías de destinatarios, exclusivamente en la medida necesaria para cumplir las finalidades descritas:</p>
     <ul>
-      <li><strong>Personal interno de TEQMED:</strong> tecnicos y administradores que acceden a los datos a traves del sistema de gestion interno para la asignacion y resolucion de llamados.</li>
-      <li><strong>Proveedor de alojamiento web:</strong> nuestro proveedor de hosting procesa los datos al alojar el Portal y gestionar el envio de correos electronicos. Opera como encargado del tratamiento.</li>
-      <li><strong>Proveedor de almacenamiento en la nube (Cloudflare):</strong> los informes tecnicos firmados, que pueden contener nombres de contactos, son respaldados en Cloudflare R2. Cloudflare actua como encargado del tratamiento bajo su Acuerdo de Procesamiento de Datos (DPA).</li>
-      <li><strong>Proveedor de mensajeria (Meta — WhatsApp Business API):</strong> cuando las notificaciones por WhatsApp estan habilitadas, el numero de telefono y nombre del contacto son transmitidos a Meta para el envio de mensajes. Meta opera bajo sus propios terminos de servicio y su DPA.</li>
+      <li><strong>Personal interno de TEQMED:</strong> técnicos y administradores que acceden a los datos a través del sistema de gestión interno para la asignación y resolución de llamados.</li>
+      <li><strong>Proveedor de alojamiento web:</strong> nuestro proveedor de hosting procesa los datos al alojar el Portal y gestionar el envío de correos electrónicos. Opera como encargado del tratamiento.</li>
+      <li><strong>Proveedor de almacenamiento en la nube (Cloudflare):</strong> los informes técnicos firmados, que pueden contener nombres de contactos, son respaldados en Cloudflare R2. Cloudflare actúa como encargado del tratamiento bajo su Acuerdo de Procesamiento de Datos (DPA).</li>
+      <li><strong>Proveedor de mensajería (Meta — WhatsApp Business API):</strong> cuando las notificaciones por WhatsApp están habilitadas, el número de teléfono y nombre del contacto son transmitidos a Meta para el envío de mensajes. Meta opera bajo sus propios términos de servicio y su DPA.</li>
     </ul>
-    <p>TEQMED <strong>no vende, alquila ni cede</strong> datos personales a terceros para fines ajenos a los descritos en esta politica.</p>
+    <p>TEQMED <strong>no vende, alquila ni cede</strong> datos personales a terceros para fines ajenos a los descritos en esta política.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -390,46 +390,46 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <span class="pp-art-num">Art. 7</span>
       <h2 class="pp-art-title">Transferencia internacional de datos</h2>
     </div>
-    <p>Algunos de los proveedores mencionados en el articulo anterior almacenan o procesan datos fuera de Chile:</p>
+    <p>Algunos de los proveedores mencionados en el artículo anterior almacenan o procesan datos fuera de Chile:</p>
     <ul>
-      <li><strong>Cloudflare, Inc.</strong> (Estados Unidos): los respaldos de informes tecnicos en formato PDF son almacenados en infraestructura de Cloudflare R2. Cloudflare cumple con clausulas contractuales tipo y mantiene un DPA conforme a estandares internacionales de proteccion de datos.</li>
-      <li><strong>Meta Platforms, Inc.</strong> (Estados Unidos): cuando las notificaciones por WhatsApp estan habilitadas, los datos de contacto son procesados por Meta. Meta dispone de un DPA y mecanismos de transferencia internacional.</li>
+      <li><strong>Cloudflare, Inc.</strong> (Estados Unidos): los respaldos de informes técnicos en formato PDF son almacenados en infraestructura de Cloudflare R2. Cloudflare cumple con cláusulas contractuales tipo y mantiene un DPA conforme a estándares internacionales de protección de datos.</li>
+      <li><strong>Meta Platforms, Inc.</strong> (Estados Unidos): cuando las notificaciones por WhatsApp están habilitadas, los datos de contacto son procesados por Meta. Meta dispone de un DPA y mecanismos de transferencia internacional.</li>
     </ul>
-    <p>Estas transferencias se realizan conforme al articulo 16 de la Ley 19.628 modificada, asegurandonos de que los destinatarios ofrezcan niveles de proteccion adecuados a traves de clausulas contractuales u otros mecanismos reconocidos.</p>
+    <p>Estas transferencias se realizan conforme al artículo 16 de la Ley 19.628 modificada, asegurándonos de que los destinatarios ofrezcan niveles de protección adecuados a través de cláusulas contractuales u otros mecanismos reconocidos.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
   <div class="pp-article" id="art8">
     <div class="pp-art-header">
       <span class="pp-art-num">Art. 8</span>
-      <h2 class="pp-art-title">Plazos de conservacion</h2>
+      <h2 class="pp-art-title">Plazos de conservación</h2>
     </div>
-    <p>Los datos personales son conservados unicamente durante el tiempo necesario para cumplir con las finalidades para las que fueron recopilados:</p>
+    <p>Los datos personales son conservados únicamente durante el tiempo necesario para cumplir con las finalidades para las que fueron recopilados:</p>
 
     <div class="pp-table-wrap">
       <table class="pp-table">
         <thead>
           <tr>
             <th>Datos</th>
-            <th>Plazo de conservacion</th>
+            <th>Plazo de conservación</th>
             <th>Criterio</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Datos de identificacion y contacto</td>
-            <td>Mientras exista relacion contractual vigente con el cliente</td>
+            <td>Datos de identificación y contacto</td>
+            <td>Mientras exista relación contractual vigente con el cliente</td>
             <td>Necesidad contractual</td>
           </tr>
           <tr>
             <td>Llamados y su contenido</td>
-            <td>5 anos desde la resolucion</td>
-            <td>Trazabilidad tecnica y obligaciones regulatorias</td>
+            <td>5 años desde la resolución</td>
+            <td>Trazabilidad técnica y obligaciones regulatorias</td>
           </tr>
           <tr>
-            <td>Informes tecnicos vinculados</td>
+            <td>Informes técnicos vinculados</td>
             <td>Indefinido mientras sean requeridos por normativa sectorial</td>
-            <td>Obligacion legal del sector equipamiento medico</td>
+            <td>Obligación legal del sector equipamiento médico</td>
           </tr>
           <tr>
             <td>Direcciones IP (rate limiting)</td>
@@ -437,7 +437,7 @@ $pageTitle = 'Política de Privacidad — Teqmed';
             <td>Seguridad del sistema</td>
           </tr>
           <tr>
-            <td>Registros de auditoria</td>
+            <td>Registros de auditoría</td>
             <td>24 meses</td>
             <td>Trazabilidad y seguridad</td>
           </tr>
@@ -445,7 +445,7 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       </table>
     </div>
 
-    <p>Una vez cumplidos los plazos indicados, los datos seran eliminados o anonimizados de forma irreversible, salvo que exista una obligacion legal que requiera su conservacion por un periodo mayor.</p>
+    <p>Una vez cumplidos los plazos indicados, los datos serán eliminados o anonimizados de forma irreversible, salvo que exista una obligación legal que requiera su conservación por un período mayor.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -456,18 +456,18 @@ $pageTitle = 'Política de Privacidad — Teqmed';
     </div>
     <p>De conformidad con la Ley 19.628 modificada por la Ley 21.719, usted tiene derecho a:</p>
     <ul>
-      <li><strong>Derecho de acceso</strong> (Art. 5): solicitar confirmacion de si sus datos personales estan siendo tratados y, en caso afirmativo, obtener una copia de los mismos y la informacion sobre su tratamiento.</li>
-      <li><strong>Derecho de rectificacion</strong> (Art. 6): solicitar la correccion de datos personales inexactos o incompletos.</li>
-      <li><strong>Derecho de supresion</strong> (Art. 7): solicitar la eliminacion de sus datos personales cuando ya no sean necesarios para la finalidad para la que fueron recopilados, cuando retire su consentimiento, o cuando el tratamiento sea ilicito.</li>
-      <li><strong>Derecho de oposicion</strong> (Art. 8 bis): oponerse al tratamiento de sus datos personales en determinadas circunstancias, incluido el tratamiento basado en interes legitimo.</li>
-      <li><strong>Derecho a la portabilidad</strong> (Art. 9): solicitar la entrega de sus datos personales en un formato estructurado, de uso comun y lectura mecanica, o su transmision directa a otro responsable cuando sea tecnicamente posible.</li>
+      <li><strong>Derecho de acceso</strong> (Art. 5): solicitar confirmación de si sus datos personales están siendo tratados y, en caso afirmativo, obtener una copia de los mismos y la información sobre su tratamiento.</li>
+      <li><strong>Derecho de rectificación</strong> (Art. 6): solicitar la corrección de datos personales inexactos o incompletos.</li>
+      <li><strong>Derecho de supresión</strong> (Art. 7): solicitar la eliminación de sus datos personales cuando ya no sean necesarios para la finalidad para la que fueron recopilados, cuando retire su consentimiento, o cuando el tratamiento sea ilícito.</li>
+      <li><strong>Derecho de oposición</strong> (Art. 8 bis): oponerse al tratamiento de sus datos personales en determinadas circunstancias, incluido el tratamiento basado en interés legítimo.</li>
+      <li><strong>Derecho a la portabilidad</strong> (Art. 9): solicitar la entrega de sus datos personales en un formato estructurado, de uso común y lectura mecánica, o su transmisión directa a otro responsable cuando sea técnicamente posible.</li>
     </ul>
 
     <div class="pp-highlight">
-      <strong>Limitaciones:</strong> el ejercicio del derecho de supresion puede estar limitado cuando los datos sean necesarios para el cumplimiento de obligaciones legales, la formulacion o defensa de reclamaciones, o la integridad de informes tecnicos ya firmados y respaldados conforme a la normativa sectorial.
+      <strong>Limitaciones:</strong> el ejercicio del derecho de supresión puede estar limitado cuando los datos sean necesarios para el cumplimiento de obligaciones legales, la formulación o defensa de reclamaciones, o la integridad de informes técnicos ya firmados y respaldados conforme a la normativa sectorial.
     </div>
 
-    <p>TEQMED respondera a las solicitudes de ejercicio de derechos dentro de un plazo maximo de <strong>15 dias habiles</strong> contados desde la recepcion de la solicitud, conforme a lo establecido en la ley. Este plazo podra extenderse por un periodo igual en caso de solicitudes complejas o multiples, previa comunicacion al titular.</p>
+    <p>TEQMED responderá a las solicitudes de ejercicio de derechos dentro de un plazo máximo de <strong>15 días hábiles</strong> contados desde la recepción de la solicitud, conforme a lo establecido en la ley. Este plazo podrá extenderse por un período igual en caso de solicitudes complejas o múltiples, previa comunicación al titular.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -476,28 +476,28 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <span class="pp-art-num">Art. 10</span>
       <h2 class="pp-art-title">Ejercicio de derechos</h2>
     </div>
-    <p>Para ejercer cualquiera de los derechos descritos en el articulo anterior, puede contactarnos a traves de:</p>
+    <p>Para ejercer cualquiera de los derechos descritos en el artículo anterior, puede contactarnos a través de:</p>
     <div class="pp-highlight">
-      <strong>Correo electronico:</strong> contacto@teqmed.cl<br>
+      <strong>Correo electrónico:</strong> contacto@teqmed.cl<br>
       <strong>Asunto sugerido:</strong> "Solicitud de derechos de datos personales"<br>
-      <strong>Direccion postal:</strong> TEQMED SpA, Castellon 970, Concepcion, Region del Biobio, Chile
+      <strong>Dirección postal:</strong> TEQMED SpA, Castellón 970, Concepción, Región del Biobío, Chile
     </div>
-    <p>Para procesar su solicitud, le pediremos que se identifique adecuadamente y especifique el derecho que desea ejercer. TEQMED podra solicitar informacion adicional cuando sea necesario para verificar su identidad y evitar el acceso no autorizado a datos de terceros.</p>
-    <p>Si considera que el tratamiento de sus datos personales infringe la normativa vigente, tiene derecho a presentar una reclamacion ante la <strong>Agencia de Proteccion de Datos Personales</strong> de Chile.</p>
+    <p>Para procesar su solicitud, le pediremos que se identifique adecuadamente y especifique el derecho que desea ejercer. TEQMED podrá solicitar información adicional cuando sea necesario para verificar su identidad y evitar el acceso no autorizado a datos de terceros.</p>
+    <p>Si considera que el tratamiento de sus datos personales infringe la normativa vigente, tiene derecho a presentar una reclamación ante la <strong>Agencia de Protección de Datos Personales</strong> de Chile.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
   <div class="pp-article" id="art11">
     <div class="pp-art-header">
       <span class="pp-art-num">Art. 11</span>
-      <h2 class="pp-art-title">Cookies y tecnologias similares</h2>
+      <h2 class="pp-art-title">Cookies y tecnologías similares</h2>
     </div>
-    <p>El Portal utiliza las siguientes tecnologias:</p>
+    <p>El Portal utiliza las siguientes tecnologías:</p>
     <ul>
-      <li><strong>Cookie de sesion:</strong> una cookie tecnica estrictamente necesaria para el funcionamiento del Portal. Almacena un identificador de sesion anonimo que permite mantener su sesion activa mientras navega. Se configura con los atributos <em>Secure</em>, <em>HttpOnly</em> y <em>SameSite=Lax</em> para su proteccion. Se elimina automaticamente al cerrar el navegador o al expirar la sesion.</li>
-      <li><strong>Token CSRF:</strong> un token de seguridad almacenado en la sesion del servidor que protege contra ataques de falsificacion de solicitudes. No contiene datos personales.</li>
+      <li><strong>Cookie de sesión:</strong> una cookie técnica estrictamente necesaria para el funcionamiento del Portal. Almacena un identificador de sesión anónimo que permite mantener su sesión activa mientras navega. Se configura con los atributos <em>Secure</em>, <em>HttpOnly</em> y <em>SameSite=Lax</em> para su protección. Se elimina automáticamente al cerrar el navegador o al expirar la sesión.</li>
+      <li><strong>Token CSRF:</strong> un token de seguridad almacenado en la sesión del servidor que protege contra ataques de falsificación de solicitudes. No contiene datos personales.</li>
     </ul>
-    <p>El Portal <strong>no utiliza cookies de terceros</strong>, cookies de seguimiento, cookies publicitarias ni herramientas de analitica web. No se realizan perfiles de navegacion ni seguimiento del comportamiento del usuario.</p>
+    <p>El Portal <strong>no utiliza cookies de terceros</strong>, cookies de seguimiento, cookies publicitarias ni herramientas de analítica web. No se realizan perfiles de navegación ni seguimiento del comportamiento del usuario.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -506,49 +506,49 @@ $pageTitle = 'Política de Privacidad — Teqmed';
       <span class="pp-art-num">Art. 12</span>
       <h2 class="pp-art-title">Seguridad de los datos</h2>
     </div>
-    <p>TEQMED implementa medidas tecnicas y organizativas apropiadas para proteger los datos personales contra el acceso no autorizado, la alteracion, la divulgacion o la destruccion, conforme al articulo 14 quinquies de la ley. Entre ellas:</p>
+    <p>TEQMED implementa medidas técnicas y organizativas apropiadas para proteger los datos personales contra el acceso no autorizado, la alteración, la divulgación o la destrucción, conforme al artículo 14 quinquies de la ley. Entre ellas:</p>
     <ul>
       <li>Cifrado de todas las comunicaciones mediante protocolo HTTPS/TLS, con cabecera HSTS habilitada.</li>
-      <li>Almacenamiento de contrasenas con algoritmo de hash seguro (bcrypt).</li>
-      <li>Proteccion contra ataques CSRF, inyeccion de codigo y falsificacion de solicitudes.</li>
-      <li>Limitacion de tasa de acceso (rate limiting) para prevenir ataques automatizados.</li>
-      <li>Validacion de tipo MIME real en archivos subidos.</li>
+      <li>Almacenamiento de contraseñas con algoritmo de hash seguro (bcrypt).</li>
+      <li>Protección contra ataques CSRF, inyección de código y falsificación de solicitudes.</li>
+      <li>Limitación de tasa de acceso (rate limiting) para prevenir ataques automatizados.</li>
+      <li>Validación de tipo MIME real en archivos subidos.</li>
       <li>Cabeceras de seguridad HTTP: Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.</li>
-      <li>Control de acceso basado en roles con principio de privilegio minimo.</li>
-      <li>Registro de auditoria de operaciones sensibles.</li>
+      <li>Control de acceso basado en roles con principio de privilegio mínimo.</li>
+      <li>Registro de auditoría de operaciones sensibles.</li>
     </ul>
-    <p>Ningun sistema de transmision o almacenamiento de datos puede garantizar una seguridad absoluta. En caso de producirse una vulneracion de seguridad que pueda afectar sus datos personales, TEQMED le notificara conforme a lo dispuesto en la legislacion vigente.</p>
+    <p>Ningún sistema de transmisión o almacenamiento de datos puede garantizar una seguridad absoluta. En caso de producirse una vulneración de seguridad que pueda afectar sus datos personales, TEQMED le notificará conforme a lo dispuesto en la legislación vigente.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
   <div class="pp-article" id="art13">
     <div class="pp-art-header">
       <span class="pp-art-num">Art. 13</span>
-      <h2 class="pp-art-title">Modificaciones a esta politica</h2>
+      <h2 class="pp-art-title">Modificaciones a esta política</h2>
     </div>
-    <p>TEQMED se reserva el derecho de modificar esta politica de privacidad en cualquier momento para adaptarla a cambios normativos, jurisprudenciales o de nuestras practicas de tratamiento de datos.</p>
-    <p>Cualquier modificacion sera publicada en esta misma pagina con la fecha de actualizacion correspondiente. En caso de cambios sustanciales que afecten la forma en que tratamos sus datos personales, le notificaremos a traves del correo electronico registrado en nuestro sistema, con al menos <strong>30 dias de anticipacion</strong> a la entrada en vigencia de los cambios.</p>
-    <p>El uso continuado del Portal despues de la entrada en vigencia de las modificaciones constituye la aceptacion de la politica actualizada.</p>
+    <p>TEQMED se reserva el derecho de modificar esta política de privacidad en cualquier momento para adaptarla a cambios normativos, jurisprudenciales o de nuestras prácticas de tratamiento de datos.</p>
+    <p>Cualquier modificación será publicada en esta misma página con la fecha de actualización correspondiente. En caso de cambios sustanciales que afecten la forma en que tratamos sus datos personales, le notificaremos a través del correo electrónico registrado en nuestro sistema, con al menos <strong>30 días de anticipación</strong> a la entrada en vigencia de los cambios.</p>
+    <p>El uso continuado del Portal después de la entrada en vigencia de las modificaciones constituye la aceptación de la política actualizada.</p>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
   <div class="pp-article" id="art14">
     <div class="pp-art-header">
       <span class="pp-art-num">Art. 14</span>
-      <h2 class="pp-art-title">Legislacion aplicable</h2>
+      <h2 class="pp-art-title">Legislación aplicable</h2>
     </div>
-    <p>Esta politica de privacidad se rige por la legislacion chilena, en particular:</p>
+    <p>Esta política de privacidad se rige por la legislación chilena, en particular:</p>
     <ul>
-      <li>Ley 19.628 sobre Proteccion de la Vida Privada, modificada por la <strong>Ley 21.719</strong> que establece normas sobre proteccion de los datos personales.</li>
-      <li>Las normas complementarias y reglamentos que emita la Agencia de Proteccion de Datos Personales en ejercicio de sus atribuciones.</li>
+      <li>Ley 19.628 sobre Protección de la Vida Privada, modificada por la <strong>Ley 21.719</strong> que establece normas sobre protección de los datos personales.</li>
+      <li>Las normas complementarias y reglamentos que emita la Agencia de Protección de Datos Personales en ejercicio de sus atribuciones.</li>
     </ul>
-    <p>Para cualquier controversia derivada del tratamiento de datos personales, seran competentes los tribunales ordinarios de justicia de la ciudad de Concepcion, Region del Biobio, Chile, sin perjuicio de las competencias de la Agencia de Proteccion de Datos Personales.</p>
+    <p>Para cualquier controversia derivada del tratamiento de datos personales, serán competentes los tribunales ordinarios de justicia de la ciudad de Concepción, Región del Biobío, Chile, sin perjuicio de las competencias de la Agencia de Protección de Datos Personales.</p>
   </div>
 
   <footer class="pp-footer">
-    <p><strong>TEQMED SpA</strong> — Castellon 970, Concepcion, Region del Biobio, Chile</p>
+    <p><strong>TEQMED SpA</strong> — Castellón 970, Concepción, Región del Biobío, Chile</p>
     <p>Contacto: contacto@teqmed.cl</p>
-    <p style="margin-top:8px">Este documento fue redactado en cumplimiento de la Ley 21.719 y la Ley 19.628 modificada. Se recomienda su revision periodica por asesoria legal especializada.</p>
+    <p style="margin-top:8px">Este documento fue redactado en cumplimiento de la Ley 21.719 y la Ley 19.628 modificada. Se recomienda su revisión periódica por asesoría legal especializada.</p>
   </footer>
 
 </div>
