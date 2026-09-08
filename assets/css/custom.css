@@ -246,13 +246,20 @@ body { font-family: 'Manrope', -apple-system, system-ui, sans-serif; -webkit-fon
 .tq-add-equipo:hover { background: #eaf3f5; border-color: var(--tq-teal-700); }
 
 /* ── Image upload ── */
-.tq-upload-area {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  padding: 20px; border: 1.5px dashed var(--tq-border); border-radius: 10px;
-  cursor: pointer; transition: all 0.15s; text-align: center;
-  font-size: 14px; font-weight: 600; color: var(--tq-ink-2);
+.tq-upload-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border: 1px solid var(--tq-border); border-radius: 8px;
+  cursor: pointer; transition: all 0.15s;
+  font-family: inherit; font-size: 13px; font-weight: 600; color: var(--tq-ink-2);
+  background: var(--tq-surface-2);
 }
-.tq-upload-area:hover { background: #eaf3f5; border-color: var(--tq-teal-700); color: var(--tq-teal-900); }
+.tq-upload-btn:hover { background: #eaf3f5; border-color: var(--tq-teal-700); color: var(--tq-teal-900); }
+.tq-upload-btn svg { flex-shrink: 0; color: var(--tq-muted); }
+.tq-upload-btn:hover svg { color: var(--tq-teal-700); }
+.tq-upload-count {
+  font-size: 11px; font-weight: 700; color: var(--tq-muted);
+  background: var(--tq-border-soft); padding: 2px 7px; border-radius: 999px;
+}
 .tq-img-previews {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px;
 }

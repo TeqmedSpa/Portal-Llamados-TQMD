@@ -395,50 +395,47 @@ $_SESSION['form_ready_at'] = time();
                     placeholder="Cualquier información adicional útil para el técnico…"></textarea>
                 </div>
 
+                <!-- ⑧ Imágenes por equipo (máximo 3) -->
+                <div class="tq-q" x-show="eq.equipo_id && !eq.tieneAbierto" style="margin-bottom:0;margin-top:16px">
+                  <label class="tq-q-label" style="font-weight:600">
+                    Imágenes
+                    <span style="font-weight:400;color:var(--tq-muted);font-size:13px;margin-left:6px">— opcional, máx. 3</span>
+                  </label>
+
+                  <!-- Previews -->
+                  <div class="tq-img-previews" x-show="eq.imagenesPreview.length > 0">
+                    <template x-for="(img, idx) in eq.imagenesPreview" :key="img.id">
+                      <div class="tq-img-thumb">
+                        <img :src="img.url" alt="Vista previa">
+                        <button type="button" class="tq-img-remove" @click="quitarImagenEquipo(i, idx)" title="Quitar imagen">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                        <span class="tq-img-name" x-text="img.name"></span>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Botón de subir -->
+                  <label class="tq-upload-btn" x-show="eq.imagenes.length < 3">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" multiple
+                           @change="agregarImagenEquipo(i, $event)" style="display:none">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Adjuntar fotos</span>
+                    <span class="tq-upload-count" x-text="eq.imagenes.length + '/3'"></span>
+                  </label>
+                </div>
+
               </div>
             </template>
 
             <button type="button" class="tq-add-equipo" @click="agregarEquipo()">
               + Agregar otro equipo a este llamado
             </button>
-
-            <!-- ── Imágenes (máximo 3) ──────────────────────────────────── -->
-            <div class="tq-q" style="margin-top:24px">
-              <label class="tq-q-label">
-                Imágenes
-                <span style="font-weight:400;color:var(--tq-muted);font-size:13px;margin-left:6px">— opcional, máximo 3</span>
-              </label>
-              <div class="tq-q-hint" style="margin-top:0;margin-bottom:10px">
-                Puedes adjuntar fotos del equipo o de la falla para ayudar al técnico. Formatos: JPG, PNG, WEBP. Máximo 5 MB por imagen.
-              </div>
-
-              <!-- Previews -->
-              <div class="tq-img-previews" x-show="imagenesPreview.length > 0">
-                <template x-for="(img, idx) in imagenesPreview" :key="img.id">
-                  <div class="tq-img-thumb">
-                    <img :src="img.url" alt="Vista previa">
-                    <button type="button" class="tq-img-remove" @click="quitarImagen(idx)" title="Quitar imagen">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                      </svg>
-                    </button>
-                    <span class="tq-img-name" x-text="img.name"></span>
-                  </div>
-                </template>
-              </div>
-
-              <!-- Botón de subir -->
-              <label class="tq-upload-area" x-show="imagenes.length < 3" style="display:none">
-                <input type="file" accept="image/jpeg,image/png,image/webp" multiple
-                       @change="agregarImagenes($event)" style="display:none">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color:var(--tq-muted)">
-                  <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Haz clic para seleccionar imágenes</span>
-                <span style="font-size:12px;color:var(--tq-muted)" x-text="'(' + imagenes.length + '/3 seleccionadas)'"></span>
-              </label>
-            </div>
           </div>
 
           <!-- ── Aceptación de política de privacidad ─────────────────────── -->
@@ -523,8 +520,6 @@ function portalLlamado() {
     // Página 2
     todosEquipos: [],
     equipos: [],
-    imagenes: [],         // File objects
-    imagenesPreview: [],  // { id, url, name }
 
     // Momentos por tipo de equipo
     momentosPorTipo: {
@@ -580,6 +575,8 @@ function portalLlamado() {
         operativo: null,
         comentarios: '',
         tieneAbierto: false,
+        imagenes: [],
+        imagenesPreview: [],
       };
     },
 
@@ -709,14 +706,15 @@ function portalLlamado() {
       this.equipos.splice(i, 1);
     },
 
-    // ── Imágenes ──────────────────────────────────────────────────────────
-    agregarImagenes(event) {
+    // ── Imágenes por equipo ─────────────────────────────────────────────
+    agregarImagenEquipo(eqIdx, event) {
+      const eq = this.equipos[eqIdx];
       const files = Array.from(event.target.files);
       const permitidos = ['image/jpeg', 'image/png', 'image/webp'];
-      const maxSize = 5 * 1024 * 1024; // 5 MB
+      const maxSize = 5 * 1024 * 1024;
 
       for (const file of files) {
-        if (this.imagenes.length >= 3) break;
+        if (eq.imagenes.length >= 3) break;
         if (!permitidos.includes(file.type)) {
           this.errorMsg = `"${file.name}" no es un formato válido. Solo JPG, PNG o WEBP.`;
           continue;
@@ -726,18 +724,18 @@ function portalLlamado() {
           continue;
         }
         const id = Date.now() + '-' + Math.random().toString(36).slice(2);
-        this.imagenes.push({ id, file });
-        this.imagenesPreview.push({ id, url: URL.createObjectURL(file), name: file.name });
+        eq.imagenes.push({ id, file });
+        eq.imagenesPreview.push({ id, url: URL.createObjectURL(file), name: file.name });
       }
-      // Reset el input para permitir re-seleccionar el mismo archivo
       event.target.value = '';
     },
 
-    quitarImagen(idx) {
-      const removed = this.imagenesPreview[idx];
+    quitarImagenEquipo(eqIdx, imgIdx) {
+      const eq = this.equipos[eqIdx];
+      const removed = eq.imagenesPreview[imgIdx];
       if (removed) URL.revokeObjectURL(removed.url);
-      this.imagenesPreview.splice(idx, 1);
-      this.imagenes.splice(idx, 1);
+      eq.imagenesPreview.splice(imgIdx, 1);
+      eq.imagenes.splice(imgIdx, 1);
     },
 
     // ── Validación ────────────────────────────────────────────────────────
@@ -824,10 +822,12 @@ function portalLlamado() {
           }))
         }));
 
-        // Imágenes como archivos
-        for (const img of this.imagenes) {
-          formData.append('imagenes[]', img.file);
-        }
+        // Imágenes por equipo: imagenes_0[], imagenes_1[], etc.
+        this.equipos.forEach((eq, i) => {
+          for (const img of eq.imagenes) {
+            formData.append('imagenes_' + i + '[]', img.file);
+          }
+        });
 
         const r = await fetch('process/procesar_llamado.php', {
           method: 'POST',

@@ -145,58 +145,62 @@ foreach ($equipos as $i => $eq) {
     elseif (!in_array($momento, $momentosValidos, true))               $errors[] = "Equipo #{$num}: momento no válido.";
 }
 
-// ── Validar imágenes ─────────────────────────────────────────────────────────
-$imagenesSubidas   = [];
+// ── Validar imágenes (por equipo: imagenes_0[], imagenes_1[], …) ─────────────
+$imagenesPorEquipo = [];
 $tiposPermitidos   = ['image/jpeg', 'image/png', 'image/webp'];
 $extPermitidas     = ['jpg', 'jpeg', 'png', 'webp'];
 $maxTamanoImagen   = 5 * 1024 * 1024; // 5 MB
-$maxImagenes       = 3;
+$maxImagenesPorEq  = 3;
 
-if (!empty($_FILES['imagenes']['name'][0])) {
-    $totalImagenes = count($_FILES['imagenes']['name']);
-    if ($totalImagenes > $maxImagenes) {
-        $errors[] = "Máximo {$maxImagenes} imágenes por llamado.";
-    } else {
-        for ($i = 0; $i < $totalImagenes; $i++) {
-            $nombre   = $_FILES['imagenes']['name'][$i];
-            $tmpPath  = $_FILES['imagenes']['tmp_name'][$i];
-            $tamano   = $_FILES['imagenes']['size'][$i];
-            $error    = $_FILES['imagenes']['error'][$i];
+foreach ($equipos as $eqIdx => $eq) {
+    $campo = "imagenes_{$eqIdx}";
+    if (empty($_FILES[$campo]['name'][0])) continue;
 
-            if ($error !== UPLOAD_ERR_OK) {
-                $errors[] = "Error al subir la imagen \"{$nombre}\".";
-                continue;
-            }
+    $totalImagenes = count($_FILES[$campo]['name']);
+    $num = $eqIdx + 1;
+    if ($totalImagenes > $maxImagenesPorEq) {
+        $errors[] = "Equipo #{$num}: máximo {$maxImagenesPorEq} imágenes.";
+        continue;
+    }
 
-            // Validar tamaño
-            if ($tamano > $maxTamanoImagen) {
-                $errors[] = "\"{$nombre}\" excede los 5 MB.";
-                continue;
-            }
+    $imagenesPorEquipo[$eqIdx] = [];
 
-            // Validar tipo MIME real (no confiar en el header del cliente)
-            $finfo    = new finfo(FILEINFO_MIME_TYPE);
-            $mimeReal = $finfo->file($tmpPath);
-            if (!in_array($mimeReal, $tiposPermitidos, true)) {
-                $errors[] = "\"{$nombre}\" no es un formato de imagen válido.";
-                continue;
-            }
+    for ($i = 0; $i < $totalImagenes; $i++) {
+        $nombre   = $_FILES[$campo]['name'][$i];
+        $tmpPath  = $_FILES[$campo]['tmp_name'][$i];
+        $tamano   = $_FILES[$campo]['size'][$i];
+        $error    = $_FILES[$campo]['error'][$i];
 
-            // Validar extensión
-            $ext = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
-            if (!in_array($ext, $extPermitidas, true)) {
-                $errors[] = "\"{$nombre}\": extensión no permitida.";
-                continue;
-            }
-
-            $imagenesSubidas[] = [
-                'tmp_path'        => $tmpPath,
-                'nombre_original' => mb_substr(basename($nombre), 0, 255),
-                'mime_type'       => $mimeReal,
-                'tamano_bytes'    => $tamano,
-                'ext'             => $ext === 'jpeg' ? 'jpg' : $ext,
-            ];
+        if ($error !== UPLOAD_ERR_OK) {
+            $errors[] = "Equipo #{$num}: error al subir \"{$nombre}\".";
+            continue;
         }
+
+        if ($tamano > $maxTamanoImagen) {
+            $errors[] = "Equipo #{$num}: \"{$nombre}\" excede los 5 MB.";
+            continue;
+        }
+
+        $finfo    = new finfo(FILEINFO_MIME_TYPE);
+        $mimeReal = $finfo->file($tmpPath);
+        if (!in_array($mimeReal, $tiposPermitidos, true)) {
+            $errors[] = "Equipo #{$num}: \"{$nombre}\" no es un formato válido.";
+            continue;
+        }
+
+        $ext = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
+        if (!in_array($ext, $extPermitidas, true)) {
+            $errors[] = "Equipo #{$num}: \"{$nombre}\" extensión no permitida.";
+            continue;
+        }
+
+        $imagenesPorEquipo[$eqIdx][] = [
+            'tmp_path'        => $tmpPath,
+            'nombre_original' => mb_substr(basename($nombre), 0, 255),
+            'mime_type'       => $mimeReal,
+            'tamano_bytes'    => $tamano,
+            'ext'             => $ext === 'jpeg' ? 'jpg' : $ext,
+        ];
     }
 }
 
@@ -349,8 +353,8 @@ try {
             (:llamado_id, NULL, 'creacion', '', 'abierto', '', :now)
     ")->execute([':llamado_id' => $llamadoId, ':now' => $ahora]);
 
-    // ── Guardar imágenes ─────────────────────────────────────────────────────
-    if (!empty($imagenesSubidas)) {
+    // ── Guardar imágenes por equipo ─────────────────────────────────────────
+    if (!empty($imagenesPorEquipo)) {
         $uploadDir = __DIR__ . '/../uploads/llamados/' . $llamadoId;
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
@@ -358,29 +362,32 @@ try {
 
         $stmtImg = $pdo->prepare("
             INSERT INTO llamado_imagen
-                (llamado_id, nombre_archivo, nombre_original, mime_type, tamano_bytes, created_at)
+                (llamado_id, equipo_id, nombre_archivo, nombre_original, mime_type, tamano_bytes, created_at)
             VALUES
-                (:llamado_id, :nombre_archivo, :nombre_original, :mime_type, :tamano_bytes, :now)
+                (:llamado_id, :equipo_id, :nombre_archivo, :nombre_original, :mime_type, :tamano_bytes, :now)
         ");
 
-        foreach ($imagenesSubidas as $img) {
-            // Nombre único basado en uniqid + random
-            $nombreUnico = uniqid('img_', true) . '.' . $img['ext'];
+        foreach ($imagenesPorEquipo as $eqIdx => $imagenes) {
+            $equipoIdImg = (int) $equipos[$eqIdx]['equipo_id'];
+            foreach ($imagenes as $img) {
+                $nombreUnico = uniqid('img_', true) . '.' . $img['ext'];
 
-            $destino = $uploadDir . '/' . $nombreUnico;
-            if (!move_uploaded_file($img['tmp_path'], $destino)) {
-                error_log("[TQMD-PORTAL] Error al guardar imagen: {$img['nombre_original']}");
-                continue;
+                $destino = $uploadDir . '/' . $nombreUnico;
+                if (!move_uploaded_file($img['tmp_path'], $destino)) {
+                    error_log("[TQMD-PORTAL] Error al guardar imagen: {$img['nombre_original']}");
+                    continue;
+                }
+
+                $stmtImg->execute([
+                    ':llamado_id'      => $llamadoId,
+                    ':equipo_id'       => $equipoIdImg,
+                    ':nombre_archivo'  => $nombreUnico,
+                    ':nombre_original' => $img['nombre_original'],
+                    ':mime_type'       => $img['mime_type'],
+                    ':tamano_bytes'    => $img['tamano_bytes'],
+                    ':now'             => $ahora,
+                ]);
             }
-
-            $stmtImg->execute([
-                ':llamado_id'      => $llamadoId,
-                ':nombre_archivo'  => $nombreUnico,
-                ':nombre_original' => $img['nombre_original'],
-                ':mime_type'       => $img['mime_type'],
-                ':tamano_bytes'    => $img['tamano_bytes'],
-                ':now'             => $ahora,
-            ]);
         }
     }
 
